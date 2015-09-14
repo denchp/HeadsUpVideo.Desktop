@@ -44,7 +44,6 @@ namespace HeadsUpVideo.Desktop
 
             inkCanvas.InkPresenter.UpdateDefaultDrawingAttributes(_inkDA);
             inkCanvas.InkPresenter.InputDeviceTypes = Windows.UI.Core.CoreInputDeviceTypes.Mouse | Windows.UI.Core.CoreInputDeviceTypes.Pen;
-            inkCanvas.Tapped += InkCanvas_Tapped;
             btnClear.Tapped += BtnClear_Tapped;
             btnOpen.Tapped += BtnOpen_Tapped;
             btnPlay.Tapped += BtnPlay_Tapped;
