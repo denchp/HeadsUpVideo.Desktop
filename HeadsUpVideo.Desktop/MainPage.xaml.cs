@@ -331,11 +331,6 @@ namespace HeadsUpVideo.Desktop
             }
         }
 
-        private void InkCanvas_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
         private void HideRinks()
         {
             HalfRink.Visibility = Visibility.Collapsed;
