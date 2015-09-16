@@ -30,6 +30,7 @@ namespace HeadsUpVideo.Desktop
     {
         InkDrawingAttributes _inkDA;
         TimeSpan lastVideoPosition;
+        List<InkStroke> _savePoint;
 
         public MainPage()
         {
@@ -48,7 +49,7 @@ namespace HeadsUpVideo.Desktop
             btnClear.Tapped += BtnClear_Tapped;
             btnOpen.Tapped += BtnOpen_Tapped;
             btnPlay.Tapped += BtnPlay_Tapped;
-            
+            BtnSavePoint.Tapped += BtnSavePoint_Tapped;
             btnMore.Tapped += BtnMore_Tapped;
             btnMoreControls.Tapped += BtnMoreControls_Tapped;
             btnFullIce.Tapped += BtnFullIce_Tapped;
@@ -76,6 +77,16 @@ namespace HeadsUpVideo.Desktop
             RefreshQuickPens();
 
             this.Loaded += MainPage_Loaded;
+        }
+
+        private void BtnSavePoint_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            _savePoint = new List<InkStroke>();
+            
+            foreach (var stroke in inkCanvas.InkPresenter.StrokeContainer.GetStrokes())
+            {
+                _savePoint.Add(stroke.Clone());
+            }
         }
 
         private void BtnRecentFiles_Tapped(object sender, TappedRoutedEventArgs e)
@@ -378,7 +389,13 @@ namespace HeadsUpVideo.Desktop
 
         private void BtnClear_Tapped(object sender, TappedRoutedEventArgs e)
         {
+            if (inkCanvas.InkPresenter.StrokeContainer.GetStrokes().Count == _savePoint.Count)
+                _savePoint = new List<InkStroke>();
+
             inkCanvas.InkPresenter.StrokeContainer.Clear();
+
+            foreach (var stroke in _savePoint)
+                inkCanvas.InkPresenter.StrokeContainer.AddStroke(stroke.Clone());
         }
 
         private void BtnPlay_Tapped(object sender, TappedRoutedEventArgs e)

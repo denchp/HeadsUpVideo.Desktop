@@ -33,6 +33,7 @@
             <StackPanel Background="#44FFFFFF" HorizontalAlignment="Right" Orientation="Horizontal">
                 <StackPanel Orientation="Horizontal" x:Name="QuickPens">
                 </StackPanel>
+                <AppBarButton x:Name="BtnSavePoint" Icon="Accept" VerticalAlignment="Center" Label="Save Point"/>
                 <AppBarButton x:Name="btnClear" Icon="Delete" VerticalAlignment="Center" Label="Clear"/>
                 <AppBarButton x:Name="btnMore" Icon="More" VerticalAlignment="Center" Label="More"/>
             </StackPanel>
