@@ -45,7 +45,6 @@ namespace HeadsUpVideo.Desktop
 
             inkCanvas.InkPresenter.UpdateDefaultDrawingAttributes(_inkDA);
             inkCanvas.InkPresenter.InputDeviceTypes = Windows.UI.Core.CoreInputDeviceTypes.Mouse | Windows.UI.Core.CoreInputDeviceTypes.Pen;
-            inkCanvas.Tapped += InkCanvas_Tapped;
             btnClear.Tapped += BtnClear_Tapped;
             btnOpen.Tapped += BtnOpen_Tapped;
             btnPlay.Tapped += BtnPlay_Tapped;
@@ -340,11 +339,6 @@ namespace HeadsUpVideo.Desktop
                 var dialog = new MessageDialog("Error saving recent files list.  If this problem continues please contact support.");
                 await dialog.ShowAsync();
             }
-        }
-
-        private void InkCanvas_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            throw new NotImplementedException();
         }
 
         private void HideRinks()
