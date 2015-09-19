@@ -273,8 +273,16 @@ namespace HeadsUpVideo.Desktop
             if (link == null)
                 return;
 
-            StorageFile file = await StorageFile.GetFileFromPathAsync(((FileModel)link.DataContext).Path);
-            OpenFile(file, false);
+            try {
+                StorageFile file = await StorageFile.GetFileFromPathAsync(((FileModel)link.DataContext).Path);
+                OpenFile(file, false);
+            }
+            catch (Exception ex)
+            {
+                var dialog = new MessageDialog("There was an error opening the specified file.\r\n\r\n" + ex.Message, "Error opening file");
+                await dialog.ShowAsync();
+                return;
+            }
         }
 
         private async void OpenFile(StorageFile file, bool addToRecentList)
@@ -286,17 +294,25 @@ namespace HeadsUpVideo.Desktop
                 return;
             }
 
-            if (addToRecentList)
-            {
-                var fileList = LoadRecentFileList();
-                fileList.Add(new FileModel() { Path = file.Path, Name = file.Name });
-                SaveRecentFileList(fileList);
-            }
+            try {
+                if (addToRecentList)
+                {
+                    var fileList = LoadRecentFileList();
+                    fileList.Add(new FileModel() { Path = file.Path, Name = file.Name });
+                    SaveRecentFileList(fileList);
+                }
 
-            var stream = await file.OpenAsync(Windows.Storage.FileAccessMode.Read);
-            HideMorePanels();
-            pnlControls.Visibility = Visibility.Visible;
-            videoPlayer.SetSource(stream, file.ContentType);
+                var stream = await file.OpenAsync(Windows.Storage.FileAccessMode.Read);
+                HideMorePanels();
+                pnlControls.Visibility = Visibility.Visible;
+                videoPlayer.SetSource(stream, file.ContentType);
+            }
+            catch (Exception ex)
+            {
+                var dialog = new MessageDialog("There was an error opening the specified file.\r\n\r\n" + ex.Message, "Error opening file");
+                await dialog.ShowAsync();
+                return;
+            }
         }
 
         private List<FileModel> LoadRecentFileList()
