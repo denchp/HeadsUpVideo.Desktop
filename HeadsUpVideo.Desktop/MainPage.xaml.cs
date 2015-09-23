@@ -1,28 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
-using System.Windows.Input;
 using Windows.UI.Input.Inking;
 using Windows.UI;
-using Windows.Storage.Pickers;
-using Windows.Storage;
-using System.Xml.Serialization;
 using HeadsUpVideo.Desktop.Models;
 using Windows.UI.Popups;
 using Windows.UI.ViewManagement;
-
-// The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
+using Windows.UI.Core;
+using Windows.UI.Xaml.Shapes;
 
 namespace HeadsUpVideo.Desktop
 {
@@ -30,21 +20,33 @@ namespace HeadsUpVideo.Desktop
     {
         InkDrawingAttributes _inkDA;
         TimeSpan lastVideoPosition;
-        List<InkStroke> _savePoint;
+        List<Path> _savePoint;
+        List<Path> _lines;
+        InkSynchronizer _synch;
+        QuickPenModel _currentPen;
 
         public MainPage()
         {
             this.InitializeComponent();
+            _currentPen = new QuickPenModel();
+
+            _savePoint = new List<Path>();
+            _lines = new List<Path>();
+
+            _synch = inkCanvas.InkPresenter.ActivateCustomDrying();
 
             _inkDA = new InkDrawingAttributes()
             {
                 Color = Colors.Blue,
-                FitToCurve = true,
-                Size = new Size(10, 10)
+                FitToCurve = false,
+                Size = new Size(10, 10),
+                IgnorePressure = true
             };
 
             inkCanvas.InkPresenter.UpdateDefaultDrawingAttributes(_inkDA);
             inkCanvas.InkPresenter.InputDeviceTypes = Windows.UI.Core.CoreInputDeviceTypes.Mouse | Windows.UI.Core.CoreInputDeviceTypes.Pen;
+
+            inkCanvas.InkPresenter.StrokesCollected += InkPresenter_StrokesCollected;
             btnClear.Tapped += BtnClear_Tapped;
             btnOpen.Tapped += BtnOpen_Tapped;
             btnPlay.Tapped += BtnPlay_Tapped;
@@ -58,7 +60,7 @@ namespace HeadsUpVideo.Desktop
             BtnRecentFiles.Tapped += BtnRecentFiles_Tapped;
             Scrubber.ValueChanged += Scrubber_ValueChanged;
 
-            foreach (var file in LoadRecentFileList())
+            foreach (var file in LocalIO.LoadRecentFileList())
             {
                 var newLink = new HyperlinkButton();
                 var shortLink = new HyperlinkButton();
@@ -78,13 +80,146 @@ namespace HeadsUpVideo.Desktop
             this.Loaded += MainPage_Loaded;
         }
 
+        private void InkPresenter_StrokesCollected(InkPresenter sender, InkStrokesCollectedEventArgs args)
+        {
+            var strokes = _synch.BeginDry();
+
+            RenderStrokes(strokes);
+            
+            _synch.EndDry();
+        }
+
+        private void RenderStrokes(IReadOnlyList<InkStroke> strokes)
+        {
+            foreach (var s in strokes)
+            {
+                Point bearingPoint;
+                Point lastPoint;
+                var points = new List<Point>();
+                int includeInterval = 10;
+                int includePoint = includeInterval;
+
+                foreach (var p in s.GetInkPoints())
+                {
+                    lastPoint = new Point(p.Position.X, p.Position.Y);
+
+                    if (includePoint % includeInterval == 0)
+                    {
+                        bearingPoint = lastPoint;
+                        lastPoint = new Point(p.Position.X, p.Position.Y);
+                        points.Add(lastPoint);
+                    }
+
+                    includePoint++;
+                }
+
+                if (includePoint % includeInterval != 0) // make sure we don't chop off the end of the line!
+                    points.Add(lastPoint);
+
+                if (!_currentPen.IsFreehand)
+                    points = new List<Point> { points[0], points[points.Count - 1] };
+
+                // Get Bezier Spline Control Points.
+                Point[] cp1, cp2;
+                LineHelpers.GetCurveControlPoints(points.ToArray(), out cp1, out cp2);
+
+                // Draw curve by Bezier.
+                PathSegmentCollection lines = new PathSegmentCollection();
+                for (int i = 0; i < cp1.Length; ++i)
+                {
+                    var bezierSeg = new BezierSegment();
+                    bezierSeg.Point1 = cp1[i];
+                    bezierSeg.Point2 = cp2[i];
+                    bezierSeg.Point3 = points[i + 1];
+
+                    lines.Add(bezierSeg);
+                }
+
+                PathFigure f = new PathFigure()
+                {
+                    StartPoint = points[0],
+                    Segments = lines,
+                    IsClosed = false,
+                };
+
+                PathGeometry g = new PathGeometry();
+                g.Figures.Add(f);
+
+
+                Windows.UI.Xaml.Shapes.Path path = new Windows.UI.Xaml.Shapes.Path()
+                {
+                    Stroke = new SolidColorBrush(_inkDA.Color),
+                    StrokeThickness = _inkDA.Size.Width,
+                    StrokeEndLineCap = PenLineCap.Triangle,
+                    Data = g
+                };
+
+                if (_currentPen.LineStyle == QuickPenModel.LineType.Dashed)
+                    path.StrokeDashArray = new DoubleCollection() { 5, 2 };
+
+                _lines.Add(path);
+
+                var arrowHead = new Polyline()
+                {
+                    Stroke = new SolidColorBrush(_inkDA.Color),
+                    Fill = new SolidColorBrush(_inkDA.Color),
+                    FillRule = FillRule.Nonzero
+                };
+
+                if (lastPoint != null && bearingPoint != null)
+                {
+                    foreach (var point in DrawArrow(bearingPoint, lastPoint, _inkDA.Size.Width * 2))
+                        arrowHead.Points.Add(point);
+                }
+                
+                //_lines.Add(arrowHead);
+
+                LineCanvas.Children.Clear();
+                
+                foreach (var line in _lines)
+                    LineCanvas.Children.Add(line);
+                
+            }
+        }
+
+        private List<Point> DrawArrow(Point p1, Point p2, double length)
+        {
+
+            var points = new List<Point>();
+
+            // Find the arrow shaft unit vector.
+            double vx = p2.X - p1.X;
+            double vy = p2.Y - p1.Y;
+            double dist = (float)Math.Sqrt(vx * vx + vy * vy);
+            vx /= dist;
+            vy /= dist;
+
+            points.AddRange(DrawArrowhead(p2, vx, vy, length));
+            return points;
+            
+        }
+
+        // Draw an arrowhead at the given point
+        // in the normalizede direction <nx, ny>.
+        private List<Point> DrawArrowhead(Point p, double nx, double ny, double length)
+        {
+            var points = new List<Point>();
+
+            double ax = length * (-ny - nx);
+            double ay = length * (nx - ny);
+            return new List<Point>()
+            {
+                new Point(p.X + ax, p.Y + ay), p, new Point(p.X - ay, p.Y + ax)
+            };
+        }
+
         private void BtnSavePoint_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            _savePoint = new List<InkStroke>();
-            
-            foreach (var stroke in inkCanvas.InkPresenter.StrokeContainer.GetStrokes())
+            _savePoint = new List<Path>();
+
+            foreach (var line in _lines)
             {
-                _savePoint.Add(stroke.Clone());
+                _savePoint.Add(line);
             }
         }
 
@@ -97,21 +232,20 @@ namespace HeadsUpVideo.Desktop
         {
             QuickPens.Children.Clear();
 
-            foreach (var pen in LoadQuickPens())
+            foreach (var pen in LocalIO.LoadQuickPens())
             {
                 var quickPen = new AppBarButton();
                 quickPen.Foreground = new SolidColorBrush(pen.Color);
 
                 quickPen.Icon = new SymbolIcon(Symbol.Edit);
-                if (pen.DrawAsHighlighter)
+                if (pen.IsHighlighter)
                     quickPen.Icon = new SymbolIcon(Symbol.Highlight);
 
-                quickPen.BorderThickness = new Thickness(pen.Size.Height, pen.Size.Height, pen.Size.Height, pen.Size.Height);
+                quickPen.BorderThickness = new Thickness(pen.Size, pen.Size, pen.Size, pen.Size);
 
                 quickPen.Tapped += QuickPen_Tapped;
                 QuickPens.Children.Add(quickPen);
             }
-
         }
 
         private void QuickPen_Tapped(object sender, TappedRoutedEventArgs e)
@@ -127,86 +261,23 @@ namespace HeadsUpVideo.Desktop
 
             UpdateInk(_inkDA);
         }
-
-        private List<InkDrawingAttributes> LoadQuickPens()
-        {
-            var folder = ApplicationData.Current.LocalFolder;
-            var serializer = new XmlSerializer(typeof(List<QuickPenModel>));
-            try
-            {
-                List<QuickPenModel> quickPens;
-                using (var fileStream = new FileStream(folder.Path + "\\quickPens.xml", FileMode.Open))
-                {
-                    quickPens = serializer.Deserialize(fileStream) as List<QuickPenModel>;
-                }
-
-                if (quickPens == null)
-                    return new List<InkDrawingAttributes>();
-
-                List<InkDrawingAttributes> inkDAs = new List<InkDrawingAttributes>();
-                foreach (var pen in quickPens)
-                {
-                    inkDAs.Add(new InkDrawingAttributes()
-                    {
-                        Color = pen.Color,
-                        Size = new Size(pen.Size, pen.Size),
-                        DrawAsHighlighter = pen.IsHighlighter
-                    });
-
-                }
-
-                return inkDAs;
-            }
-            catch
-            {
-                return new List<InkDrawingAttributes>();
-            }
-        }
+        
 
         private void BtnClearQuickPens_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            SaveQuickPens(new List<InkDrawingAttributes>());
+            LocalIO.SaveQuickPens(new List<QuickPenModel>());
+
+            RefreshQuickPens();
         }
 
         private void BtnCurrentToQuick_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            var currentPens = LoadQuickPens();
+            var currentPens = LocalIO.LoadQuickPens();
+            
+            currentPens.Add(_currentPen);
+            LocalIO.SaveQuickPens(currentPens);
 
-            currentPens.Add(_inkDA);
-            SaveQuickPens(currentPens);
-        }
-
-        private async void SaveQuickPens(List<InkDrawingAttributes> currentPens)
-        {
-            List<QuickPenModel> quickPens = new List<QuickPenModel>();
-
-            foreach (var pen in currentPens)
-            {
-                quickPens.Add(new QuickPenModel()
-                {
-                    Color = pen.Color,
-                    Size = pen.Size.Height,
-                    IsHighlighter = pen.DrawAsHighlighter
-                });
-            }
-
-            var folder = ApplicationData.Current.LocalFolder;
-            try
-            {
-                var serializer = new XmlSerializer(typeof(List<QuickPenModel>));
-
-                using (var fileStream = new FileStream(folder.Path + "\\quickPens.xml", FileMode.Create))
-                {
-                    serializer.Serialize(fileStream, quickPens);
-                }
-
-                RefreshQuickPens();
-            }
-            catch (Exception)
-            {
-                var dialog = new MessageDialog("Error saving quick pens list.  If this problem continues please contact support.");
-                await dialog.ShowAsync();
-            }
+            RefreshQuickPens();
         }
 
         private async void MainPage_Loaded(object sender, RoutedEventArgs e)
@@ -273,39 +344,14 @@ namespace HeadsUpVideo.Desktop
             if (link == null)
                 return;
 
-            try {
-                StorageFile file = await StorageFile.GetFileFromPathAsync(((FileModel)link.DataContext).Path);
-                OpenFile(file, false);
-            }
-            catch (Exception ex)
+            try
             {
-                var dialog = new MessageDialog("There was an error opening the specified file.\r\n\r\n" + ex.Message, "Error opening file");
-                await dialog.ShowAsync();
-                return;
-            }
-        }
+                string filePath = ((FileModel)link.DataContext).Path;
+                var fileInfo = LocalIO.OpenFile(filePath, false);
 
-        private async void OpenFile(StorageFile file, bool addToRecentList)
-        {
-            if (file == null)
-            {
-                var dialog = new MessageDialog("There was an error opening the specified file.", "Error opening file");
-                await dialog.ShowAsync();
-                return;
-            }
-
-            try {
-                if (addToRecentList)
-                {
-                    var fileList = LoadRecentFileList();
-                    fileList.Add(new FileModel() { Path = file.Path, Name = file.Name });
-                    SaveRecentFileList(fileList);
-                }
-
-                var stream = await file.OpenAsync(Windows.Storage.FileAccessMode.Read);
                 HideMorePanels();
                 pnlControls.Visibility = Visibility.Visible;
-                videoPlayer.SetSource(stream, file.ContentType);
+                videoPlayer.SetSource(fileInfo.Stream, fileInfo.ContentType);
             }
             catch (Exception ex)
             {
@@ -315,47 +361,7 @@ namespace HeadsUpVideo.Desktop
             }
         }
 
-        private List<FileModel> LoadRecentFileList()
-        {
-            var folder = ApplicationData.Current.LocalFolder;
-            var serializer = new XmlSerializer(typeof(List<FileModel>));
-            try
-            {
-                List<FileModel> recentFiles;
-                using (var fileStream = new FileStream(folder.Path + "\\recent.xml", FileMode.Open))
-                {
-                    recentFiles = serializer.Deserialize(fileStream) as List<FileModel>;
-                }
-
-                if (recentFiles == null)
-                    return new List<FileModel>();
-
-                return recentFiles;
-            }
-            catch
-            {
-                return new List<FileModel>();
-            }
-        }
-
-        private async void SaveRecentFileList(List<FileModel> files)
-        {
-            var folder = ApplicationData.Current.LocalFolder;
-            try
-            {
-                var serializer = new XmlSerializer(typeof(List<FileModel>));
-
-                using (var fileStream = new FileStream(folder.Path + "\\recent.xml", FileMode.Create))
-                {
-                    serializer.Serialize(fileStream, files);
-                }
-            }
-            catch
-            {
-                var dialog = new MessageDialog("Error saving recent files list.  If this problem continues please contact support.");
-                await dialog.ShowAsync();
-            }
-        }
+        
 
         private void HideRinks()
         {
@@ -399,13 +405,15 @@ namespace HeadsUpVideo.Desktop
 
         private void BtnClear_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            if (inkCanvas.InkPresenter.StrokeContainer.GetStrokes().Count == _savePoint.Count)
-                _savePoint = new List<InkStroke>();
+            if (_lines.Count == _savePoint.Count)
+                _savePoint = new List<Path>();
 
-            inkCanvas.InkPresenter.StrokeContainer.Clear();
+            _lines.Clear();
+            
+            LineCanvas.Children.Clear();
 
-            foreach (var stroke in _savePoint)
-                inkCanvas.InkPresenter.StrokeContainer.AddStroke(stroke.Clone());
+            foreach (var line in _savePoint)
+                LineCanvas.Children.Add(line);
         }
 
         private void BtnPlay_Tapped(object sender, TappedRoutedEventArgs e)
@@ -442,19 +450,9 @@ namespace HeadsUpVideo.Desktop
             pnlControls.Visibility = Visibility.Collapsed;
         }
 
-        private async void BtnOpen_Tapped(object sender, TappedRoutedEventArgs e)
+        private void BtnOpen_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            FileOpenPicker openPicker = new FileOpenPicker();
-
-            openPicker.ViewMode = PickerViewMode.Thumbnail;
-            openPicker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
-            openPicker.FileTypeFilter.Add(".wmv");
-            openPicker.FileTypeFilter.Add(".mp4");
-            openPicker.FileTypeFilter.Add(".avi");
-            StorageFile file = await openPicker.PickSingleFileAsync();
-
-            if (file != null)
-                OpenFile(file, true);
+            LocalIO.SelectAndOpenFile();
         }
 
         private void ColorButton_Tapped(object sender, TappedRoutedEventArgs e)
@@ -510,6 +508,31 @@ namespace HeadsUpVideo.Desktop
                 btn.Background = new SolidColorBrush(Color.FromArgb(0, 9, 00, 00));
 
             HideOptionsBar();
+        }
+
+        private void BtnStraightLine_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            _currentPen.IsFreehand = false;
+        }
+
+        private void BtnFreehand_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            _currentPen.IsFreehand = true;
+        }
+
+        private void BtnSolid_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            _currentPen.LineStyle = QuickPenModel.LineType.Solid;
+        }
+        
+        private void BtnDashed_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            _currentPen.LineStyle = QuickPenModel.LineType.Dashed;
+        }
+
+        private void BtnDouble_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            _currentPen.LineStyle = QuickPenModel.LineType.Double;
         }
     }
 }

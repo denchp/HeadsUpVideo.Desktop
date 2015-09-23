@@ -10,6 +10,9 @@
         <MediaElement x:Name="videoPlayer" IsMuted="True" AutoPlay="False" HorizontalAlignment="Center" VerticalAlignment="Center" Height="Auto" Width="Auto" RealTimePlayback="False" />
         <Image x:Name="FullRink" Source="ms-appx:///Assets/FullSheetAngle.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Collapsed"/>
         <Image x:Name="HalfRink" Source="ms-appx:///Assets/FullSheetLong.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Collapsed"/>
+        <Canvas x:Name="LineCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            
+        </Canvas>
         <InkCanvas x:Name="inkCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" Width="Auto"/>
         <Grid x:Name="WelcomeScreen" VerticalAlignment="Center" HorizontalAlignment="Center" Width="Auto" Height="Auto">
             <Grid.ColumnDefinitions>
@@ -38,6 +41,13 @@
                 <AppBarButton x:Name="btnMore" Icon="More" VerticalAlignment="Center" Label="More"/>
             </StackPanel>
             <StackPanel x:Name="pnlMoreOptions" Visibility="Collapsed" Background="#44FFFFFF">
+                <StackPanel x:Name="pnlLines" Orientation="Horizontal" Margin="0,10,0,0" HorizontalAlignment="Right">
+                    <AppBarButton x:Name="BtnStraightLine" VerticalAlignment="Center" Tapped="BtnStraightLine_Tapped" Label="Straight"/>
+                    <AppBarButton x:Name="BtnFreehand" VerticalAlignment="Center" Tapped="BtnFreehand_Tapped" Label="Free Hand"/>
+                    <AppBarButton x:Name="BtnSolid" VerticalAlignment="Center" Tapped="BtnSolid_Tapped" Label="Solid Line"/>
+                    <AppBarButton x:Name="BtnDashed" VerticalAlignment="Center" Tapped="BtnDashed_Tapped" Label="Dashed Line"/>
+                    <AppBarButton x:Name="BtnDouble" VerticalAlignment="Center" Tapped="BtnDouble_Tapped"  Label="Double Line"/>
+                </StackPanel>
                 <StackPanel x:Name="pnlColors" Orientation="Horizontal" Margin="0,10,0,0" HorizontalAlignment="Right">
                     <AppBarButton Width="45" Height="45" Margin="5,0,5,0" VerticalAlignment="Center" Tapped="ColorButton_Tapped" Background="Red"/>
                     <AppBarButton Width="45" Height="45" Margin="5,0,5,0" VerticalAlignment="Center" Tapped="ColorButton_Tapped" Background="Yellow"/>

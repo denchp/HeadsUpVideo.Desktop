@@ -11,11 +11,22 @@ namespace HeadsUpVideo.Desktop.Models
     [DataContract]
     public class QuickPenModel
     {
+        public enum LineType
+        {
+            Solid,
+            Dashed,
+            Double
+        }
+
         [DataMember]
         public Color Color { get; set; }
         [DataMember]
         public double Size { get; set; }
         [DataMember]
         public bool IsHighlighter { get; set; }
+        [DataMember]
+        public LineType LineStyle { get; set; }
+        [DataMember]
+        public bool IsFreehand { get; set; }
     }
 }
