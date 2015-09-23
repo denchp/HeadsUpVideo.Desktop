@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.Foundation;
@@ -9,14 +10,6 @@ namespace HeadsUpVideo.Desktop
 {
     public static class LineHelpers
     {
-        /// <summary>
-        /// Get open-ended Bezier Spline Control Points.
-        /// </summary>
-        /// <param name="knots">Input Knot Bezier spline points.</param>
-        /// <param name="firstControlPoints">Output First Control points array of knots.Length - 1 length.</param>
-        /// <param name="secondControlPoints">Output Second Control points array of knots.Length - 1 length.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="knots"/> parameter must be not null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="knots"/> array must containg at least two points.</exception>
         public static void GetCurveControlPoints(Point[] knots, out Point[] firstControlPoints, out Point[] secondControlPoints)
         {
             if (knots == null)
@@ -71,6 +64,45 @@ namespace HeadsUpVideo.Desktop
                 else
                     secondControlPoints[i] = new Point((knots[n].X + x[n - 1]) / 2, (knots[n].Y + y[n - 1]) / 2);
             }
+        }
+
+        public static Point[] DrawArrow(Point p1, Point p2, double length)
+        {
+
+            var points = new List<Point>();
+            double slope = (p2.Y - p1.Y) / (p2.X - p1.X);
+            double offsetSquared = length * length;
+            double yInt = p2.Y - (slope * p2.X);
+         
+            points.Add(new Point(p2.X - length, p2.Y - length * 1.68));
+            points.Add(new Point(p2.X + length, p2.Y - length * 1.68));
+            points.Add(new Point(p2.X, p2.Y));
+
+            return points.ToArray();
+            //var points = new List<Point>();
+
+            //// Find the arrow shaft unit vector.
+            //double vx = p2.X - p1.X;
+            //double vy = p2.Y - p1.Y;
+            //double dist = (float)Math.Sqrt(vx * vx + vy * vy);
+            //vx /= dist;
+            //vy /= dist;
+
+            //points.AddRange(DrawArrowhead(p1, vx, vy, length));
+            //return points.ToArray();
+
+        }
+
+        private static List<Point> DrawArrowhead(Point p, double nx, double ny, double length)
+        {
+            var points = new List<Point>();
+
+            double ax = length * (-ny - nx);
+            double ay = length * (nx - ny);
+            return new List<Point>()
+            {
+                new Point(p.X + ax, p.Y + ay), p, new Point(p.X - ay, p.Y + ax)
+            };
         }
 
         private static double[] GetFirstControlPoints(double[] rhs)

@@ -21,17 +21,25 @@ namespace HeadsUpVideo.Desktop
         InkDrawingAttributes _inkDA;
         TimeSpan lastVideoPosition;
         List<Path> _savePoint;
+        List<Path> _activeTemplate;
         List<Path> _lines;
+        List<Polyline> _polylines;
+
         InkSynchronizer _synch;
         QuickPenModel _currentPen;
 
         public MainPage()
         {
             this.InitializeComponent();
-            _currentPen = new QuickPenModel();
+            _currentPen = new QuickPenModel()
+            {
+                IsFreehand = true
+            };
 
+            _activeTemplate = new List<Path>();
             _savePoint = new List<Path>();
             _lines = new List<Path>();
+            _polylines = new List<Polyline>();
 
             _synch = inkCanvas.InkPresenter.ActivateCustomDrying();
 
@@ -85,7 +93,7 @@ namespace HeadsUpVideo.Desktop
             var strokes = _synch.BeginDry();
 
             RenderStrokes(strokes);
-            
+
             _synch.EndDry();
         }
 
@@ -135,84 +143,47 @@ namespace HeadsUpVideo.Desktop
                     lines.Add(bezierSeg);
                 }
 
-                PathFigure f = new PathFigure()
+                PathFigure fig = new PathFigure()
                 {
                     StartPoint = points[0],
                     Segments = lines,
                     IsClosed = false,
                 };
 
-                PathGeometry g = new PathGeometry();
-                g.Figures.Add(f);
+                PathGeometry geometry = new PathGeometry();
+                geometry.Figures.Add(fig);
 
-
-                Windows.UI.Xaml.Shapes.Path path = new Windows.UI.Xaml.Shapes.Path()
+                var path = new Path()
                 {
                     Stroke = new SolidColorBrush(_inkDA.Color),
                     StrokeThickness = _inkDA.Size.Width,
                     StrokeEndLineCap = PenLineCap.Triangle,
-                    Data = g
+                    Data = geometry
                 };
+
+                var arrowheadPath = new Polyline();
+                arrowheadPath.Fill = new SolidColorBrush(Colors.Black);
+
+                foreach (var p in LineHelpers.DrawArrow(bearingPoint, lastPoint, _inkDA.Size.Width * 2))
+                    arrowheadPath.Points.Add(p);
 
                 if (_currentPen.LineStyle == QuickPenModel.LineType.Dashed)
                     path.StrokeDashArray = new DoubleCollection() { 5, 2 };
 
                 _lines.Add(path);
-
-                var arrowHead = new Polyline()
-                {
-                    Stroke = new SolidColorBrush(_inkDA.Color),
-                    Fill = new SolidColorBrush(_inkDA.Color),
-                    FillRule = FillRule.Nonzero
-                };
-
-                if (lastPoint != null && bearingPoint != null)
-                {
-                    foreach (var point in DrawArrow(bearingPoint, lastPoint, _inkDA.Size.Width * 2))
-                        arrowHead.Points.Add(point);
-                }
-                
-                //_lines.Add(arrowHead);
-
+                _polylines.Add(arrowheadPath);
                 LineCanvas.Children.Clear();
-                
+
                 foreach (var line in _lines)
                     LineCanvas.Children.Add(line);
-                
+
+                foreach (var polyline in _polylines)
+                    LineCanvas.Children.Add(polyline);
+
             }
         }
 
-        private List<Point> DrawArrow(Point p1, Point p2, double length)
-        {
-
-            var points = new List<Point>();
-
-            // Find the arrow shaft unit vector.
-            double vx = p2.X - p1.X;
-            double vy = p2.Y - p1.Y;
-            double dist = (float)Math.Sqrt(vx * vx + vy * vy);
-            vx /= dist;
-            vy /= dist;
-
-            points.AddRange(DrawArrowhead(p2, vx, vy, length));
-            return points;
-            
-        }
-
-        // Draw an arrowhead at the given point
-        // in the normalizede direction <nx, ny>.
-        private List<Point> DrawArrowhead(Point p, double nx, double ny, double length)
-        {
-            var points = new List<Point>();
-
-            double ax = length * (-ny - nx);
-            double ay = length * (nx - ny);
-            return new List<Point>()
-            {
-                new Point(p.X + ax, p.Y + ay), p, new Point(p.X - ay, p.Y + ax)
-            };
-        }
-
+        
         private void BtnSavePoint_Tapped(object sender, TappedRoutedEventArgs e)
         {
             _savePoint = new List<Path>();
@@ -261,7 +232,7 @@ namespace HeadsUpVideo.Desktop
 
             UpdateInk(_inkDA);
         }
-        
+
 
         private void BtnClearQuickPens_Tapped(object sender, TappedRoutedEventArgs e)
         {
@@ -273,7 +244,7 @@ namespace HeadsUpVideo.Desktop
         private void BtnCurrentToQuick_Tapped(object sender, TappedRoutedEventArgs e)
         {
             var currentPens = LocalIO.LoadQuickPens();
-            
+
             currentPens.Add(_currentPen);
             LocalIO.SaveQuickPens(currentPens);
 
@@ -332,7 +303,7 @@ namespace HeadsUpVideo.Desktop
                 if (videoPlayer.CurrentState == MediaElementState.Playing)
                     ToggleVideoPlayPause();
 
-                inkCanvas.InkPresenter.StrokeContainer.Clear();
+                ClearLines();
                 videoPlayer.Position = lastVideoPosition.Add(new TimeSpan(0, 0, 0, 0, (int)(scrubber.Value - 50) * 75));
             }
         }
@@ -349,7 +320,7 @@ namespace HeadsUpVideo.Desktop
                 string filePath = ((FileModel)link.DataContext).Path;
                 var fileInfo = LocalIO.OpenFile(filePath, false);
 
-                HideMorePanels();
+                HideAppBars();
                 pnlControls.Visibility = Visibility.Visible;
                 videoPlayer.SetSource(fileInfo.Stream, fileInfo.ContentType);
             }
@@ -361,7 +332,20 @@ namespace HeadsUpVideo.Desktop
             }
         }
 
+        private void ClearLines(bool restoreSave = false, bool restoreTemplate = false)
+        {
+            LineCanvas.Children.Clear();
+
+            if (restoreSave)
+                foreach (var line in _savePoint)
+                    LineCanvas.Children.Add(line);
+
+            if (restoreTemplate)
+                foreach (var line in _activeTemplate)
+                    LineCanvas.Children.Add(line);
+        }
         
+
 
         private void HideRinks()
         {
@@ -370,19 +354,17 @@ namespace HeadsUpVideo.Desktop
             Scrubber.Visibility = Visibility.Visible;
         }
 
-        private void HideMorePanels()
+        private void HideAppBars()
         {
-            pnlMoreControls.Visibility = Visibility.Collapsed;
-            pnlMoreOptions.Visibility = Visibility.Collapsed;
-            pnlRecentDropDown.Visibility = Visibility.Collapsed;
-            WelcomeScreen.Visibility = Visibility.Collapsed;
+            TopBar.IsOpen = false;
+            BottomBar.IsOpen = false;
         }
 
         private void BtnHalfIce_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            inkCanvas.InkPresenter.StrokeContainer.Clear();
+            ClearLines(false, false);
             HideRinks();
-            HideMorePanels();
+            HideAppBars();
             videoPlayer.Visibility = Visibility.Collapsed;
             HalfRink.Visibility = Visibility.Visible;
             Scrubber.Visibility = Visibility.Collapsed;
@@ -390,9 +372,9 @@ namespace HeadsUpVideo.Desktop
 
         private void BtnFullIce_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            inkCanvas.InkPresenter.StrokeContainer.Clear();
+            ClearLines();
             HideRinks();
-            HideMorePanels();
+            HideAppBars();
             Scrubber.Visibility = Visibility.Collapsed;
             videoPlayer.Visibility = Visibility.Collapsed;
             FullRink.Visibility = Visibility.Visible;
@@ -405,15 +387,15 @@ namespace HeadsUpVideo.Desktop
 
         private void BtnClear_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            if (_lines.Count == _savePoint.Count)
-                _savePoint = new List<Path>();
+            if (_lines.Count == _savePoint.Count
+                || _lines.Count == _activeTemplate.Count
+                || _lines.Count == _savePoint.Count + _activeTemplate.Count)
+            {
+                _savePoint.Clear();
+                _activeTemplate.Clear();
+            }
 
-            _lines.Clear();
-            
-            LineCanvas.Children.Clear();
-
-            foreach (var line in _savePoint)
-                LineCanvas.Children.Add(line);
+            ClearLines(true, true);
         }
 
         private void BtnPlay_Tapped(object sender, TappedRoutedEventArgs e)
@@ -423,7 +405,8 @@ namespace HeadsUpVideo.Desktop
 
         private void ToggleVideoPlayPause()
         {
-            inkCanvas.InkPresenter.StrokeContainer.Clear();
+            ClearLines();
+
             switch (videoPlayer.CurrentState)
             {
                 case MediaElementState.Stopped:
@@ -435,7 +418,7 @@ namespace HeadsUpVideo.Desktop
                     break;
                 case MediaElementState.Paused:
                     HideRinks();
-                    HideMorePanels();
+                    HideAppBars();
                     videoPlayer.Visibility = Visibility.Visible;
                     videoPlayer.Play();
                     Scrubber.Value = 50;
@@ -463,7 +446,7 @@ namespace HeadsUpVideo.Desktop
 
         private void HideOptionsBar()
         {
-            HideMorePanels();
+            HideAppBars();
         }
 
         private void BtnMore_Tapped(object sender, TappedRoutedEventArgs e)
