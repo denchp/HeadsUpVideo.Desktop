@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.Foundation;
 
 namespace HeadsUpVideo.Desktop
@@ -70,14 +66,13 @@ namespace HeadsUpVideo.Desktop
         {
 
             var points = new List<Point>();
-            double slope = (p2.Y - p1.Y) / (p2.X - p1.X);
-            double offsetSquared = length * length;
-            double yInt = p2.Y - (slope * p2.X);
-         
-            points.Add(new Point(p2.X - length, p2.Y - length * 1.68));
-            points.Add(new Point(p2.X + length, p2.Y - length * 1.68));
-            points.Add(new Point(p2.X, p2.Y));
-
+            Point p3 = new Point(p1.X, 0);
+            double degree = Math.Atan2(p2.Y - p1.Y, p2.X- p1.X) - Math.Atan2(p3.Y - p1.Y, p3.X - p1.X);
+            degree = degree * (180.0 / Math.PI); // Convert to degrees
+            points.Add(RotatePoint(new Point(p2.X - length, p2.Y), p2, degree));
+            points.Add(RotatePoint(new Point(p2.X + length, p2.Y), p2, degree));
+            points.Add(RotatePoint(new Point(p2.X, p2.Y - length * 2), p2, degree));
+            
             return points.ToArray();
             //var points = new List<Point>();
 
@@ -91,6 +86,24 @@ namespace HeadsUpVideo.Desktop
             //points.AddRange(DrawArrowhead(p1, vx, vy, length));
             //return points.ToArray();
 
+        }
+
+        static Point RotatePoint(Point pointToRotate, Point centerPoint, double angleInDegrees)
+        {
+            double angleInRadians = angleInDegrees * (Math.PI / 180);
+            double cosTheta = Math.Cos(angleInRadians);
+            double sinTheta = Math.Sin(angleInRadians);
+            return new Point
+            {
+                X =
+                    (int)
+                    (cosTheta * (pointToRotate.X - centerPoint.X) -
+                    sinTheta * (pointToRotate.Y - centerPoint.Y) + centerPoint.X),
+                Y =
+                    (int)
+                    (sinTheta * (pointToRotate.X - centerPoint.X) +
+                    cosTheta * (pointToRotate.Y - centerPoint.Y) + centerPoint.Y)
+            };
         }
 
         private static List<Point> DrawArrowhead(Point p, double nx, double ny, double length)

@@ -10,6 +10,8 @@ using System.Xml.Serialization;
 using Windows.UI.Popups;
 using Windows.Storage.Streams;
 using Windows.Storage.Pickers;
+using Windows.ApplicationModel;
+using Windows.Storage.AccessCache;
 
 namespace HeadsUpVideo.Desktop
 {
@@ -38,7 +40,7 @@ namespace HeadsUpVideo.Desktop
             }
         }
 
-        internal async static void SaveQuickPens(List<QuickPenModel> currentPens)
+        internal static async void SaveQuickPens(List<QuickPenModel> currentPens)
         {
             var folder = ApplicationData.Current.LocalFolder;
             try
@@ -57,34 +59,14 @@ namespace HeadsUpVideo.Desktop
             }
         }
 
-        internal static FileModel OpenFile(string path, bool addToRecentList)
+        internal static async Task<FileModel> OpenFile(string path, bool addToRecentList)
         {
-            try
-            {
-                var getResponse = StorageFile.GetFileFromPathAsync(path);
-                StorageFile file = null;
-
-                getResponse.Completed = (x, y) =>
-                {
-                    file = x.GetResults();
-                };
-                if (file == null)
-                {
-                    var dialog = new MessageDialog("There was an error opening the specified file.", "Error opening file");
-                    dialog.ShowAsync();
-                }
-
-                return OpenFile(file, addToRecentList);
-            }
-            catch
-            {
-                var dialog = new MessageDialog("There was an error opening the specified file.", "Error opening file");
-                dialog.ShowAsync();
-            }
-
-            return null;
+            var file = await StorageFile.GetFileFromPathAsync(path);
+            
+            return await OpenFile(file, addToRecentList);
         }
-        internal static FileModel OpenFile(StorageFile file, bool addToRecentList)
+
+        internal static async Task<FileModel> OpenFile(StorageFile file, bool addToRecentList)
         {
             try
             {
@@ -96,20 +78,19 @@ namespace HeadsUpVideo.Desktop
                     var fileList = LoadRecentFileList();
                     fileList.Add(new FileModel() { Path = file.Path, Name = file.Name });
                     SaveRecentFileList(fileList);
+                    StorageApplicationPermissions.FutureAccessList.Add(file);
                 }
 
-                var openResponse = file.OpenAsync(Windows.Storage.FileAccessMode.Read);
-                openResponse.Completed = (response, state) =>
-                {
-                    fileModel.Stream = response.GetResults();
-                };
+                var openResponse = await file.OpenAsync(Windows.Storage.FileAccessMode.Read);
+                
+                fileModel.Stream = openResponse;
 
                 return fileModel;
             }
             catch (Exception ex)
             {
                 var dialog = new MessageDialog("There was an error opening the specified file.\r\n\r\n" + ex.Message, "Error opening file");
-                dialog.ShowAsync();
+                await dialog.ShowAsync();
                 return null;
             }
         }
@@ -156,7 +137,7 @@ namespace HeadsUpVideo.Desktop
             }
         }
 
-        internal static FileModel SelectAndOpenFile()
+        internal static async Task<FileModel> SelectAndOpenFile()
         {
             FileOpenPicker openPicker = new FileOpenPicker();
 
@@ -165,16 +146,12 @@ namespace HeadsUpVideo.Desktop
             openPicker.FileTypeFilter.Add(".wmv");
             openPicker.FileTypeFilter.Add(".mp4");
             openPicker.FileTypeFilter.Add(".avi");
-            var openFileResponse = openPicker.PickSingleFileAsync();
-            FileModel fileModel = null;
 
-            openFileResponse.Completed = (result, status) =>
-            {
-                var path = result.GetResults();
-                fileModel = LocalIO.OpenFile(result.GetResults(), true);
-            };
+            var openFileResponse = await openPicker.PickSingleFileAsync();
+            
+            var result = await LocalIO.OpenFile(openFileResponse, true);
 
-            return fileModel;
+            return result;
         }
     }
 }

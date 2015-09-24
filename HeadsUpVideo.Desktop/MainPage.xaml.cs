@@ -11,56 +11,51 @@ using Windows.UI;
 using HeadsUpVideo.Desktop.Models;
 using Windows.UI.Popups;
 using Windows.UI.ViewManagement;
-using Windows.UI.Core;
 using Windows.UI.Xaml.Shapes;
 
 namespace HeadsUpVideo.Desktop
 {
     public sealed partial class MainPage : Page
     {
-        InkDrawingAttributes _inkDA;
         TimeSpan lastVideoPosition;
         List<Path> _savePoint;
         List<Path> _activeTemplate;
         List<Path> _lines;
         List<Polyline> _polylines;
+        List<Polyline> _polylineSavePoint;
 
         InkSynchronizer _synch;
         QuickPenModel _currentPen;
+        FileModel _currentFile;
 
         public MainPage()
         {
             this.InitializeComponent();
             _currentPen = new QuickPenModel()
             {
-                IsFreehand = true
+                IsFreehand = true,
+                Color = Colors.Blue,
+                LineStyle = QuickPenModel.LineType.Solid,
+                Size = 10
             };
+
+            LoadPen(_currentPen);
 
             _activeTemplate = new List<Path>();
             _savePoint = new List<Path>();
             _lines = new List<Path>();
             _polylines = new List<Polyline>();
+            _polylineSavePoint = new List<Polyline>();
 
             _synch = inkCanvas.InkPresenter.ActivateCustomDrying();
 
-            _inkDA = new InkDrawingAttributes()
-            {
-                Color = Colors.Blue,
-                FitToCurve = false,
-                Size = new Size(10, 10),
-                IgnorePressure = true
-            };
-
-            inkCanvas.InkPresenter.UpdateDefaultDrawingAttributes(_inkDA);
             inkCanvas.InkPresenter.InputDeviceTypes = Windows.UI.Core.CoreInputDeviceTypes.Mouse | Windows.UI.Core.CoreInputDeviceTypes.Pen;
-
             inkCanvas.InkPresenter.StrokesCollected += InkPresenter_StrokesCollected;
+
             btnClear.Tapped += BtnClear_Tapped;
             btnOpen.Tapped += BtnOpen_Tapped;
             btnPlay.Tapped += BtnPlay_Tapped;
             BtnSavePoint.Tapped += BtnSavePoint_Tapped;
-            btnMore.Tapped += BtnMore_Tapped;
-            btnMoreControls.Tapped += BtnMoreControls_Tapped;
             btnFullIce.Tapped += BtnFullIce_Tapped;
             btnHalfIce.Tapped += BtnHalfIce_Tapped;
             btnCurrentToQuick.Tapped += BtnCurrentToQuick_Tapped;
@@ -83,9 +78,22 @@ namespace HeadsUpVideo.Desktop
                 lstRecentFiles.Children.Add(newLink);
                 pnlRecentDropDown.Children.Add(shortLink);
             }
-            RefreshQuickPens();
 
+            RefreshQuickPens();
             this.Loaded += MainPage_Loaded;
+        }
+
+        private void LoadPen(QuickPenModel penModel)
+        {
+           var newInk = new InkDrawingAttributes()
+            {
+                Color = penModel.Color,
+                FitToCurve = false,
+                Size = new Size(penModel.Size, penModel.Size),
+                IgnorePressure = true
+            };
+
+            UpdateInk(newInk);
         }
 
         private void InkPresenter_StrokesCollected(InkPresenter sender, InkStrokesCollectedEventArgs args)
@@ -141,6 +149,8 @@ namespace HeadsUpVideo.Desktop
                     bezierSeg.Point3 = points[i + 1];
 
                     lines.Add(bezierSeg);
+                    lastPoint = points[i + 1];
+                    bearingPoint = points[i];
                 }
 
                 PathFigure fig = new PathFigure()
@@ -155,16 +165,16 @@ namespace HeadsUpVideo.Desktop
 
                 var path = new Path()
                 {
-                    Stroke = new SolidColorBrush(_inkDA.Color),
-                    StrokeThickness = _inkDA.Size.Width,
+                    Stroke = new SolidColorBrush(_currentPen.Color),
+                    StrokeThickness = _currentPen.Size,
                     StrokeEndLineCap = PenLineCap.Triangle,
                     Data = geometry
                 };
 
                 var arrowheadPath = new Polyline();
-                arrowheadPath.Fill = new SolidColorBrush(Colors.Black);
+                arrowheadPath.Fill = new SolidColorBrush(_currentPen.Color);
 
-                foreach (var p in LineHelpers.DrawArrow(bearingPoint, lastPoint, _inkDA.Size.Width * 2))
+                foreach (var p in LineHelpers.DrawArrow(bearingPoint, lastPoint, _currentPen.Size * 1.3))
                     arrowheadPath.Points.Add(p);
 
                 if (_currentPen.LineStyle == QuickPenModel.LineType.Dashed)
@@ -182,16 +192,17 @@ namespace HeadsUpVideo.Desktop
 
             }
         }
-
         
         private void BtnSavePoint_Tapped(object sender, TappedRoutedEventArgs e)
         {
             _savePoint = new List<Path>();
+            _polylineSavePoint = new List<Polyline>();
 
             foreach (var line in _lines)
-            {
                 _savePoint.Add(line);
-            }
+
+            foreach (var poly in _polylines)
+                _polylineSavePoint.Add(poly);
         }
 
         private void BtnRecentFiles_Tapped(object sender, TappedRoutedEventArgs e)
@@ -215,6 +226,8 @@ namespace HeadsUpVideo.Desktop
                 quickPen.BorderThickness = new Thickness(pen.Size, pen.Size, pen.Size, pen.Size);
 
                 quickPen.Tapped += QuickPen_Tapped;
+                quickPen.DataContext = pen;
+
                 QuickPens.Children.Add(quickPen);
             }
         }
@@ -223,16 +236,10 @@ namespace HeadsUpVideo.Desktop
         {
             var pen = sender as AppBarButton;
 
-            _inkDA.Color = ((SolidColorBrush)pen.Foreground).Color;
-            _inkDA.DrawAsHighlighter = false;
-            _inkDA.Size = new Size(pen.BorderThickness.Top, pen.BorderThickness.Top);
+            _currentPen = (QuickPenModel)pen.DataContext;
 
-            if (((SymbolIcon)pen.Icon).Symbol == Symbol.Highlight)
-                _inkDA.DrawAsHighlighter = true;
-
-            UpdateInk(_inkDA);
+            LoadPen(_currentPen);
         }
-
 
         private void BtnClearQuickPens_Tapped(object sender, TappedRoutedEventArgs e)
         {
@@ -251,20 +258,13 @@ namespace HeadsUpVideo.Desktop
             RefreshQuickPens();
         }
 
-        private async void MainPage_Loaded(object sender, RoutedEventArgs e)
+        private void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
             var thumb = MyFindSliderChildOfType<Thumb>(Scrubber);
 
             thumb.DragCompleted += Thumb_DragCompleted;
 
             pnlControls.Visibility = Visibility.Collapsed;
-
-            var view = ApplicationView.GetForCurrentView();
-            if (!view.TryEnterFullScreenMode())
-            {
-                var dialog = new MessageDialog("Unable to enter the full-screen mode.");
-                await dialog.ShowAsync();
-            }
         }
 
         private void Thumb_DragCompleted(object sender, DragCompletedEventArgs e)
@@ -318,7 +318,7 @@ namespace HeadsUpVideo.Desktop
             try
             {
                 string filePath = ((FileModel)link.DataContext).Path;
-                var fileInfo = LocalIO.OpenFile(filePath, false);
+                var fileInfo = await LocalIO.OpenFile(filePath, false);
 
                 HideAppBars();
                 pnlControls.Visibility = Visibility.Visible;
@@ -335,17 +335,28 @@ namespace HeadsUpVideo.Desktop
         private void ClearLines(bool restoreSave = false, bool restoreTemplate = false)
         {
             LineCanvas.Children.Clear();
+            _lines.Clear();
+            _polylines.Clear();
 
             if (restoreSave)
+            {
                 foreach (var line in _savePoint)
-                    LineCanvas.Children.Add(line);
+                    _lines.Add(line);
+
+                foreach (var polyline in _polylineSavePoint)
+                    _polylines.Add(polyline);
+            }
 
             if (restoreTemplate)
                 foreach (var line in _activeTemplate)
-                    LineCanvas.Children.Add(line);
-        }
-        
+                    _lines.Add(line);
 
+            foreach (var line in _lines)
+                LineCanvas.Children.Add(line);
+
+            foreach (var polyline in _polylines)
+                LineCanvas.Children.Add(polyline);
+        }
 
         private void HideRinks()
         {
@@ -380,11 +391,6 @@ namespace HeadsUpVideo.Desktop
             FullRink.Visibility = Visibility.Visible;
         }
 
-        private void BtnMoreControls_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            pnlMoreControls.Visibility = Visibility.Visible;
-        }
-
         private void BtnClear_Tapped(object sender, TappedRoutedEventArgs e)
         {
             if (_lines.Count == _savePoint.Count
@@ -392,6 +398,7 @@ namespace HeadsUpVideo.Desktop
                 || _lines.Count == _savePoint.Count + _activeTemplate.Count)
             {
                 _savePoint.Clear();
+                _polylineSavePoint.Clear();
                 _activeTemplate.Clear();
             }
 
@@ -428,94 +435,85 @@ namespace HeadsUpVideo.Desktop
             }
         }
 
-        private void HideAppBar()
+        private async void BtnOpen_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            pnlControls.Visibility = Visibility.Collapsed;
-        }
+            _currentFile = await LocalIO.SelectAndOpenFile();
 
-        private void BtnOpen_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            LocalIO.SelectAndOpenFile();
+            videoPlayer.SetSource(_currentFile.Stream, _currentFile.ContentType);
         }
 
         private void ColorButton_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            _inkDA.Color = ((SolidColorBrush)((AppBarButton)sender).Background).Color;
-            UpdateInk(_inkDA);
+            _currentPen.Color = ((SolidColorBrush)((AppBarButton)sender).Background).Color;
+            LoadPen(_currentPen);
         }
 
-        private void HideOptionsBar()
+        private void BtnSmall_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            HideAppBars();
+            _currentPen.Size = 5;
+            LoadPen(_currentPen);
         }
 
-        private void BtnMore_Tapped(object sender, TappedRoutedEventArgs e)
+        private void BtnMed_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            pnlMoreOptions.Visibility = Visibility.Visible;
+            _currentPen.Size = 10;
+            LoadPen(_currentPen);
         }
 
-        private void btnSmall_Tapped(object sender, TappedRoutedEventArgs e)
+        private void BtnLarge_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            _inkDA.Size = new Size(5, 5);
-            UpdateInk(_inkDA);
-        }
-
-        private void btnMed_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            _inkDA.Size = new Size(10, 10);
-            UpdateInk(_inkDA);
-        }
-
-        private void btnLarge_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            _inkDA.Size = new Size(20, 20);
-            UpdateInk(_inkDA);
+            _currentPen.Size = 20;
+            LoadPen(_currentPen);
         }
 
         private void UpdateInk(InkDrawingAttributes inkDA)
         {
             inkCanvas.InkPresenter.UpdateDefaultDrawingAttributes(inkDA);
-            HideOptionsBar();
+            HideAppBars();
         }
 
-        private void btnHighlight_Tapped(object sender, TappedRoutedEventArgs e)
+        private void BtnHighlight_Tapped(object sender, TappedRoutedEventArgs e)
         {
             var btn = sender as AppBarButton;
 
-            _inkDA.DrawAsHighlighter = !_inkDA.DrawAsHighlighter;
-            UpdateInk(_inkDA);
+            _currentPen.IsHighlighter = !_currentPen.IsHighlighter;
 
-            if (_inkDA.DrawAsHighlighter)
+            if (_currentPen.IsHighlighter)
                 btn.Background = new SolidColorBrush(Color.FromArgb(44, 9, 00, 00));
             else
                 btn.Background = new SolidColorBrush(Color.FromArgb(0, 9, 00, 00));
 
-            HideOptionsBar();
+            LoadPen(_currentPen);
         }
 
         private void BtnStraightLine_Tapped(object sender, TappedRoutedEventArgs e)
         {
             _currentPen.IsFreehand = false;
+            LoadPen(_currentPen);
         }
 
         private void BtnFreehand_Tapped(object sender, TappedRoutedEventArgs e)
         {
             _currentPen.IsFreehand = true;
+            LoadPen(_currentPen);
         }
 
         private void BtnSolid_Tapped(object sender, TappedRoutedEventArgs e)
         {
             _currentPen.LineStyle = QuickPenModel.LineType.Solid;
+            LoadPen(_currentPen);
         }
         
         private void BtnDashed_Tapped(object sender, TappedRoutedEventArgs e)
         {
             _currentPen.LineStyle = QuickPenModel.LineType.Dashed;
+            LoadPen(_currentPen);
         }
 
         private void BtnDouble_Tapped(object sender, TappedRoutedEventArgs e)
         {
             _currentPen.LineStyle = QuickPenModel.LineType.Double;
+            LoadPen(_currentPen);
         }
     }
 }
