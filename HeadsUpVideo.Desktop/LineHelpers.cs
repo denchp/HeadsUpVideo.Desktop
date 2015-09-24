@@ -69,9 +69,10 @@ namespace HeadsUpVideo.Desktop
             Point p3 = new Point(p1.X, 0);
             double degree = Math.Atan2(p2.Y - p1.Y, p2.X- p1.X) - Math.Atan2(p3.Y - p1.Y, p3.X - p1.X);
             degree = degree * (180.0 / Math.PI); // Convert to degrees
-            points.Add(RotatePoint(new Point(p2.X - length, p2.Y), p2, degree));
-            points.Add(RotatePoint(new Point(p2.X + length, p2.Y), p2, degree));
-            points.Add(RotatePoint(new Point(p2.X, p2.Y - length * 2), p2, degree));
+
+            points.Add(RotatePoint(new Point(p2.X - length, p2.Y + length), p2, degree));
+            points.Add(RotatePoint(new Point(p2.X + length, p2.Y + length), p2, degree));
+            points.Add(RotatePoint(new Point(p2.X, p2.Y - length * 2.2), p2, degree));
             
             return points.ToArray();
             //var points = new List<Point>();

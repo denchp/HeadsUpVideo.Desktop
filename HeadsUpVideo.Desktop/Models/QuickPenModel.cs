@@ -19,6 +19,9 @@ namespace HeadsUpVideo.Desktop.Models
         }
 
         [DataMember]
+        public bool EnableArrow { get; set; }
+
+        [DataMember]
         public Color Color { get; set; }
         [DataMember]
         public double Size { get; set; }

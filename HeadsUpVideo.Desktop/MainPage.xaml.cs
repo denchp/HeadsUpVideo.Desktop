@@ -171,17 +171,22 @@ namespace HeadsUpVideo.Desktop
                     Data = geometry
                 };
 
-                var arrowheadPath = new Polyline();
-                arrowheadPath.Fill = new SolidColorBrush(_currentPen.Color);
+                if (_currentPen.EnableArrow)
+                {
+                    var arrowheadPath = new Polyline();
+                    arrowheadPath.Fill = new SolidColorBrush(_currentPen.Color);
 
-                foreach (var p in LineHelpers.DrawArrow(bearingPoint, lastPoint, _currentPen.Size * 1.3))
-                    arrowheadPath.Points.Add(p);
+                    foreach (var p in LineHelpers.DrawArrow(bearingPoint, lastPoint, _currentPen.Size * 1.3))
+                        arrowheadPath.Points.Add(p);
 
-                if (_currentPen.LineStyle == QuickPenModel.LineType.Dashed)
-                    path.StrokeDashArray = new DoubleCollection() { 5, 2 };
+                    if (_currentPen.LineStyle == QuickPenModel.LineType.Dashed)
+                        path.StrokeDashArray = new DoubleCollection() { 5, 2 };
+
+                    _polylines.Add(arrowheadPath);
+                }
 
                 _lines.Add(path);
-                _polylines.Add(arrowheadPath);
+                
                 LineCanvas.Children.Clear();
 
                 foreach (var line in _lines)
@@ -241,6 +246,11 @@ namespace HeadsUpVideo.Desktop
             LoadPen(_currentPen);
         }
 
+        private void BtnArrow_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            _currentPen.EnableArrow = true;
+        }
+
         private void BtnClearQuickPens_Tapped(object sender, TappedRoutedEventArgs e)
         {
             LocalIO.SaveQuickPens(new List<QuickPenModel>());
@@ -265,6 +275,7 @@ namespace HeadsUpVideo.Desktop
             thumb.DragCompleted += Thumb_DragCompleted;
 
             pnlControls.Visibility = Visibility.Collapsed;
+            WelcomeScreen.Visibility = Visibility.Visible;
         }
 
         private void Thumb_DragCompleted(object sender, DragCompletedEventArgs e)
@@ -322,6 +333,7 @@ namespace HeadsUpVideo.Desktop
 
                 HideAppBars();
                 pnlControls.Visibility = Visibility.Visible;
+                ClearLines(false, false);
                 videoPlayer.SetSource(fileInfo.Stream, fileInfo.ContentType);
             }
             catch (Exception ex)
@@ -369,6 +381,7 @@ namespace HeadsUpVideo.Desktop
         {
             TopBar.IsOpen = false;
             BottomBar.IsOpen = false;
+            WelcomeScreen.Visibility = Visibility.Collapsed;
         }
 
         private void BtnHalfIce_Tapped(object sender, TappedRoutedEventArgs e)
@@ -438,7 +451,8 @@ namespace HeadsUpVideo.Desktop
         private async void BtnOpen_Tapped(object sender, TappedRoutedEventArgs e)
         {
             _currentFile = await LocalIO.SelectAndOpenFile();
-
+            HideAppBars();
+            ClearLines(false, false);
             videoPlayer.SetSource(_currentFile.Stream, _currentFile.ContentType);
         }
 

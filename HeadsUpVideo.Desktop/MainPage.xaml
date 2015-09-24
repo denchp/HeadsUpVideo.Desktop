@@ -37,6 +37,7 @@
                         <AppBarButton x:Name="BtnStraightLine" VerticalAlignment="Center" Tapped="BtnStraightLine_Tapped" Label="Straight"/>
                         <AppBarButton x:Name="BtnFreehand" VerticalAlignment="Center" Tapped="BtnFreehand_Tapped" Label="Free Hand"/>
                         <AppBarButton x:Name="BtnSolid" VerticalAlignment="Center" Tapped="BtnSolid_Tapped" Label="Solid Line"/>
+                        <AppBarButton x:Name="BtnArrow" VerticalAlignment="Center" Tapped="BtnArrow_Tapped" Label="Enable Arrow"/>
                         <AppBarButton x:Name="BtnDashed" VerticalAlignment="Center" Tapped="BtnDashed_Tapped" Label="Dashed Line"/>
                         <AppBarButton x:Name="BtnDouble" VerticalAlignment="Center" Tapped="BtnDouble_Tapped"  Label="Double Line"/>
                         <AppBarSeparator/>
