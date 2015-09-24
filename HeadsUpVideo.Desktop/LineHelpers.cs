@@ -75,18 +75,6 @@ namespace HeadsUpVideo.Desktop
             points.Add(RotatePoint(new Point(p2.X, p2.Y - length * 2.2), p2, degree));
             
             return points.ToArray();
-            //var points = new List<Point>();
-
-            //// Find the arrow shaft unit vector.
-            //double vx = p2.X - p1.X;
-            //double vy = p2.Y - p1.Y;
-            //double dist = (float)Math.Sqrt(vx * vx + vy * vy);
-            //vx /= dist;
-            //vy /= dist;
-
-            //points.AddRange(DrawArrowhead(p1, vx, vy, length));
-            //return points.ToArray();
-
         }
 
         static Point RotatePoint(Point pointToRotate, Point centerPoint, double angleInDegrees)

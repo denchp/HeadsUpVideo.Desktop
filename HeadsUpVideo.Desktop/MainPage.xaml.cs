@@ -27,6 +27,7 @@ namespace HeadsUpVideo.Desktop
         InkSynchronizer _synch;
         QuickPenModel _currentPen;
         FileModel _currentFile;
+        MainPageViewModel _viewModel;
 
         public MainPage()
         {
@@ -38,7 +39,8 @@ namespace HeadsUpVideo.Desktop
                 LineStyle = QuickPenModel.LineType.Solid,
                 Size = 10
             };
-
+            _viewModel = new MainPageViewModel();
+            _viewModel.CurrentPen = _currentPen;
             LoadPen(_currentPen);
 
             _activeTemplate = new List<Path>();

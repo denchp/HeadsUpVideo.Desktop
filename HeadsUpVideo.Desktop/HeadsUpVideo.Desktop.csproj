@@ -97,6 +97,7 @@
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Compile Include="CustomControls\ToggleAppBarButton.cs" />
     <Compile Include="LocalIO.cs" />
     <None Include="project.json" />
   </ItemGroup>
@@ -109,6 +110,8 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Models\FileModel.cs" />
+    <Compile Include="Models\MainPageViewModel.cs" />
+    <Compile Include="Models\NotifyPropertyChangedBase.cs" />
     <Compile Include="Models\QuickPenModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

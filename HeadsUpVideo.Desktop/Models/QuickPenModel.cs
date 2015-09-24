@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
@@ -9,7 +10,7 @@ using Windows.UI;
 namespace HeadsUpVideo.Desktop.Models
 {
     [DataContract]
-    public class QuickPenModel
+    public class QuickPenModel : NotifyPropertyChangedBase
     {
         public enum LineType
         {
@@ -18,18 +19,52 @@ namespace HeadsUpVideo.Desktop.Models
             Double
         }
 
-        [DataMember]
-        public bool EnableArrow { get; set; }
+        private bool enableArrow, isFreehand, isHighlighter;
+        private Color color;
+        private double size;
+        LineType lineStyle;
 
         [DataMember]
-        public Color Color { get; set; }
+        public bool EnableArrow
+        {
+            get { return enableArrow; }
+            set { enableArrow = value; TriggerPropertyChange("EnableArrow"); }
+        }
+
         [DataMember]
-        public double Size { get; set; }
+        public Color Color
+        {
+            get { return color; }
+            set { color = value; TriggerPropertyChange("Color"); }
+        }
         [DataMember]
-        public bool IsHighlighter { get; set; }
+        public double Size
+        {
+            get { return size; }
+            set { size = value; TriggerPropertyChange("Size"); }
+        }
         [DataMember]
-        public LineType LineStyle { get; set; }
+        public bool IsHighlighter
+        {
+            get { return isHighlighter; }
+            set { isHighlighter = value; TriggerPropertyChange("IsHighlighter"); }
+        }
         [DataMember]
-        public bool IsFreehand { get; set; }
+        public LineType LineStyle
+        {
+            get { return lineStyle; }
+            set { lineStyle = value; TriggerPropertyChange("LineStyle"); }
+        }
+        [DataMember]
+        public bool IsFreehand
+        {
+            get { return isFreehand; }
+            set { isFreehand = value;
+                TriggerPropertyChange("IsFreehand");
+                TriggerPropertyChange("IsStraight");
+            }
+        }
+        public bool IsStraight { get { return !IsFreehand; } }
+
     }
 }
