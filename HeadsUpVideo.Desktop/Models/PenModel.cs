@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
+﻿using HeadsUpVideo.Desktop.Base;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.UI;
 
 namespace HeadsUpVideo.Desktop.Models
 {
     [DataContract]
-    public class QuickPenModel : NotifyPropertyChangedBase
+    public class PenModel : NotifyPropertyChangedBase
     {
         public enum LineType
         {

@@ -17,35 +17,38 @@ namespace HeadsUpVideo.Desktop
 {
     public static class LocalIO
     {
-        public static List<QuickPenModel> LoadQuickPens()
+        public static List<PenModel> LoadQuickPens()
         {
             var folder = ApplicationData.Current.LocalFolder;
-            var serializer = new XmlSerializer(typeof(List<QuickPenModel>));
+            var serializer = new XmlSerializer(typeof(List<PenModel>));
             try
             {
-                List<QuickPenModel> quickPens;
+                List<PenModel> quickPens;
                 using (var fileStream = new FileStream(folder.Path + "\\quickPens.xml", FileMode.Open))
                 {
-                    quickPens = serializer.Deserialize(fileStream) as List<QuickPenModel>;
+                    quickPens = serializer.Deserialize(fileStream) as List<PenModel>;
                 }
 
                 if (quickPens == null)
-                    return new List<QuickPenModel>();
+                    return new List<PenModel>();
 
                 return quickPens;
             }
             catch
             {
-                return new List<QuickPenModel>();
+                return new List<PenModel>();
             }
         }
 
-        internal static async void SaveQuickPens(List<QuickPenModel> currentPens)
+        internal static async void SaveQuickPens(IEnumerable<PenModel> currentPens = null)
         {
+            if (currentPens == null)
+                currentPens = new List<PenModel>();
+
             var folder = ApplicationData.Current.LocalFolder;
             try
             {
-                var serializer = new XmlSerializer(typeof(List<QuickPenModel>));
+                var serializer = new XmlSerializer(typeof(List<PenModel>));
 
                 using (var fileStream = new FileStream(folder.Path + "\\quickPens.xml", FileMode.Create))
                 {

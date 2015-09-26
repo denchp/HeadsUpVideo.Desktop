@@ -94,9 +94,21 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
+    <Compile Include="Base\BaseCommand.cs" />
+    <Compile Include="Commands\ClearQuickPensCommand.cs" />
+    <Compile Include="Commands\LoadQuickPenCommand.cs" />
+    <Compile Include="Commands\PlayPauseCommand.cs" />
+    <Compile Include="Commands\SaveQuickPenCommand.cs" />
+    <Compile Include="Commands\SetLineStyleCommand.cs" />
+    <Compile Include="CustomControls\CustomInkCanvas.cs" />
+    <Compile Include="CustomControls\PenButton.cs" />
+    <Compile Include="Interfaces\ICustomCanvas.cs" />
+    <Compile Include="ViewModels\FileViewModel.cs" />
+    <Compile Include="ViewModels\PenViewModel.cs" />
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Compile Include="Commands\OpenFileCommand.cs" />
     <Compile Include="CustomControls\ToggleAppBarButton.cs" />
     <Compile Include="LocalIO.cs" />
     <None Include="project.json" />
@@ -110,9 +122,9 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Models\FileModel.cs" />
-    <Compile Include="Models\MainPageViewModel.cs" />
-    <Compile Include="Models\NotifyPropertyChangedBase.cs" />
-    <Compile Include="Models\QuickPenModel.cs" />
+    <Compile Include="ViewModels\MainPageViewModel.cs" />
+    <Compile Include="Base\NotifyPropertyChangedBase.cs" />
+    <Compile Include="Models\PenModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

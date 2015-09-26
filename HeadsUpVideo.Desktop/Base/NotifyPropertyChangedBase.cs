@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HeadsUpVideo.Desktop.Models
+namespace HeadsUpVideo.Desktop.Base
 {
     public class NotifyPropertyChangedBase : INotifyPropertyChanged
     {

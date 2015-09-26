@@ -33,8 +33,7 @@ namespace HeadsUpVideo.Desktop
         Frame rootFrame;
         private StorageFile _errorFile;
         public StorageFile ErrorFile { get { return _errorFile; } set { _errorFile = value; } }
-        Models.MainPageViewModel MainViewModel = new Models.MainPageViewModel();
-
+        
         public App()
         {
             this.InitializeComponent();
