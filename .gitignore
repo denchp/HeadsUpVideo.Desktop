@@ -46,3 +46,4 @@ Temporary Items
 AppPackages
 bin
 obj
+/HeadsUpVideo.Desktop/Commands/OpenFileCommand.cs

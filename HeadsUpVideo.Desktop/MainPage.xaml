@@ -9,7 +9,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" Height="Auto" Width="Auto">
     <Grid Background="white" x:Name="mainGrid">
-        <MediaElement x:Name="videoPlayer" IsMuted="True" AutoPlay="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RealTimePlayback="False"  Source="{Binding CurrentFile.Stream}"/>
+        <ContentControl Content="{Binding VideoPlayer}"/>
         <Image x:Name="FullRink" Source="ms-appx:///Assets/FullSheetAngle.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Collapsed"/>
         <Image x:Name="HalfRink" Source="ms-appx:///Assets/FullSheetLong.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Collapsed"/>
         <Canvas x:Name="LineCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Canvas>

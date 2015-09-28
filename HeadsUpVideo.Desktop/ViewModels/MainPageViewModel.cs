@@ -46,8 +46,10 @@ namespace HeadsUpVideo.Desktop.ViewModels
             RecentFiles = new ObservableCollection<FileViewModel>();
         }
 
-        public void Initialize(ICustomCanvas canvas, MediaElement videoPlayer)
+        public void Initialize(ICustomCanvas canvas)
         {
+            InitializeVideoPlayer();
+
             CurrentPen = new PenViewModel()
             {
                 IsFreehand = true,
@@ -56,7 +58,6 @@ namespace HeadsUpVideo.Desktop.ViewModels
                 Size = 10
             };
             Canvas = canvas;
-            VideoPlayer = videoPlayer;
             WelcomeScreenVisible = Visibility.Visible;
 
             LoadRecentFiles();
@@ -66,6 +67,17 @@ namespace HeadsUpVideo.Desktop.ViewModels
             SaveQuickPenCmd = new SaveQuickPenCommand() { CanExecuteFunc = obj => true, ExecuteFunc = SaveQuickPen };
             LoadQuickPenCmd = new LoadQuickPenCommand() { CanExecuteFunc = obj => true, ExecuteFunc = LoadQuickPen };
             PlayPauseCmd = new PlayPauseCommand() { CanExecuteFunc = obj => true, ExecuteFunc = TogglePlayPause };
+        }
+
+        private void InitializeVideoPlayer()
+        {
+            VideoPlayer = new MediaElement()
+            {
+                VerticalAlignment = VerticalAlignment.Stretch,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                IsMuted = true,
+                AutoPlay = false
+            };
         }
 
         private void TogglePlayPause()
@@ -84,8 +96,6 @@ namespace HeadsUpVideo.Desktop.ViewModels
                     VideoPlayer.Play();
                     break;
             }
-
-
         }
 
         private void LoadQuickPen(PenViewModel obj)
