@@ -25,9 +25,9 @@ namespace HeadsUpVideo.Desktop
         {
             this.InitializeComponent();
             this.DataContext = _viewModel;
-            _viewModel.Initialize(inkCanvas, videoPlayer);
+            _viewModel.Initialize(inkCanvas);
             inkCanvas.Initialize(LineCanvas, _viewModel.CurrentPen);
-            videoPlayer.CurrentStateChanged += VideoPlayer_CurrentStateChanged;
+            _viewModel.VideoPlayer.CurrentStateChanged += VideoPlayer_CurrentStateChanged;
             Scrubber.ValueChanged += Scrubber_ValueChanged;
 
             _viewModel.QuickPens.CollectionChanged += QuickPens_CollectionChanged;
@@ -37,7 +37,7 @@ namespace HeadsUpVideo.Desktop
 
         private void VideoPlayer_CurrentStateChanged(object sender, RoutedEventArgs e)
         {
-            switch (videoPlayer.CurrentState)
+            switch (_viewModel.VideoPlayer.CurrentState)
             {
                 case MediaElementState.Stopped:
                 case MediaElementState.Playing:
@@ -80,7 +80,7 @@ namespace HeadsUpVideo.Desktop
         private void Thumb_DragCompleted(object sender, DragCompletedEventArgs e)
         {
             Scrubber.Value = 50;
-            _viewModel.LastVideoPosition = videoPlayer.Position;
+            _viewModel.LastVideoPosition = _viewModel.VideoPlayer.Position;
         }
 
         public static T MyFindSliderChildOfType<T>(DependencyObject root) where T : class
@@ -110,10 +110,10 @@ namespace HeadsUpVideo.Desktop
 
             if (scrubber.Value != 50)
             {
-                if (videoPlayer.CurrentState == MediaElementState.Playing)
+                if (_viewModel.VideoPlayer.CurrentState == MediaElementState.Playing)
                     _viewModel.PlayPauseCmd.Execute(null);
-                
-                videoPlayer.Position = _viewModel.LastVideoPosition.Add(new TimeSpan(0, 0, 0, 0, (int)(scrubber.Value - 50) * 75));
+
+                _viewModel.VideoPlayer.Position = _viewModel.LastVideoPosition.Add(new TimeSpan(0, 0, 0, 0, (int)(scrubber.Value - 50) * 75));
             }
         }
 

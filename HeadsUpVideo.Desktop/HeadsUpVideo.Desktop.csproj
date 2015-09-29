@@ -95,7 +95,10 @@
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
     <Compile Include="Base\BaseCommand.cs" />
+    <Compile Include="Base\EmptyCommand.cs" />
+    <Compile Include="Base\StringCommand.cs" />
     <Compile Include="Commands\ClearQuickPensCommand.cs" />
+    <Compile Include="Commands\ImageLoadCommand.cs" />
     <Compile Include="Commands\LoadQuickPenCommand.cs" />
     <Compile Include="Commands\PlayPauseCommand.cs" />
     <Compile Include="Commands\SaveQuickPenCommand.cs" />

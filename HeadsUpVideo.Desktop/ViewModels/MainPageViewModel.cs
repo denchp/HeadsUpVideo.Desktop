@@ -17,6 +17,7 @@ namespace HeadsUpVideo.Desktop.ViewModels
     {
         public ICustomCanvas Canvas { get; set; }
         public MediaElement VideoPlayer { get; set; }
+        public String ImageSource { get; set; }
 
         public PenViewModel CurrentPen { get; set; }
         public FileViewModel CurrentFile { get; set; }

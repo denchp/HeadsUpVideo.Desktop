@@ -8,7 +8,7 @@ using System.Windows.Input;
 
 namespace HeadsUpVideo.Desktop.Commands
 {
-    public class LoadQuickPenCommand :ICommand
+    public class LoadQuickPenCommand : ICommand
     {
         public event EventHandler CanExecuteChanged;
 
