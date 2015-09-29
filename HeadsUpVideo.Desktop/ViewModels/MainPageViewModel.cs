@@ -7,36 +7,49 @@ using System.Collections.Generic;
 using System.Linq;
 using HeadsUpVideo.Desktop.Interfaces;
 using HeadsUpVideo.Desktop.Models;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml;
 
 namespace HeadsUpVideo.Desktop.ViewModels
 {
     public class MainPageViewModel : NotifyPropertyChangedBase
     {
-        public ICustomCanvas Canvas { get; set; }
-        public MediaElement VideoPlayer { get; set; }
-        public String ImageSource { get; set; }
+        public event EventHandler TogglePlayPauseEvent;
+        public event EventHandler FileOpened;
 
+        public ICustomCanvas Canvas { get; set; }
+        public String DiagramBackground { get; set; }
+        
         public PenViewModel CurrentPen { get; set; }
-        public FileViewModel CurrentFile { get; set; }
+        private FileViewModel currentFile;
+        public FileViewModel CurrentFile
+        {
+            get { return currentFile;  }
+            set { currentFile = value;  TriggerPropertyChange("CurrentFile");  }
+        }
+
         public ObservableCollection<PenViewModel> QuickPens { get; set; }
         public ObservableCollection<FileViewModel> RecentFiles { get; set; }
         public TimeSpan LastVideoPosition { get; set; }
 
-        public BaseCommand OpenFileCmd { get; set; }
+        public OpenFileCommand OpenFileCmd { get; set; }
         public SetLineStyleCommand SetLineStyleCmd { get; set; }
-        public BaseCommand ClearQuickPensCmd { get; set; }
-        public BaseCommand SaveQuickPenCmd { get; set; }
+        public ClearQuickPensCommand ClearQuickPensCmd { get; set; }
+        public SaveQuickPenCommand SaveQuickPenCmd { get; set; }
         public LoadQuickPenCommand LoadQuickPenCmd { get; set; }
         public PlayPauseCommand PlayPauseCmd { get; set; }
 
-        private Visibility welcomeScreenVisible;
-        public Visibility WelcomeScreenVisible
+        private Visibility welcomeScreenVisibility;
+        public Visibility WelcomeScreenVisibility
         {
-            get { return welcomeScreenVisible; }
-            set { welcomeScreenVisible = value; TriggerPropertyChange("WelcomeScreenVisible"); }
+            get { return welcomeScreenVisibility; }
+            set { welcomeScreenVisibility = value; TriggerPropertyChange("WelcomeScreenVisibility"); }
+        }
+
+        private Visibility diagramVisibility;
+        public Visibility DiagramVisibility
+        {
+            get { return diagramVisibility;  }
+            set { diagramVisibility = value; TriggerPropertyChange("DiagramVisibility"); }
         }
 
         public MainPageViewModel()
@@ -49,8 +62,6 @@ namespace HeadsUpVideo.Desktop.ViewModels
 
         public void Initialize(ICustomCanvas canvas)
         {
-            InitializeVideoPlayer();
-
             CurrentPen = new PenViewModel()
             {
                 IsFreehand = true,
@@ -59,7 +70,7 @@ namespace HeadsUpVideo.Desktop.ViewModels
                 Size = 10
             };
             Canvas = canvas;
-            WelcomeScreenVisible = Visibility.Visible;
+            WelcomeScreenVisibility = Visibility.Visible;
 
             LoadRecentFiles();
             OpenFileCmd = new OpenFileCommand() { CanExecuteFunc = obj => true, ExecuteFunc = OpenFile };
@@ -70,33 +81,12 @@ namespace HeadsUpVideo.Desktop.ViewModels
             PlayPauseCmd = new PlayPauseCommand() { CanExecuteFunc = obj => true, ExecuteFunc = TogglePlayPause };
         }
 
-        private void InitializeVideoPlayer()
-        {
-            VideoPlayer = new MediaElement()
-            {
-                VerticalAlignment = VerticalAlignment.Stretch,
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-                IsMuted = true,
-                AutoPlay = false
-            };
-        }
-
         private void TogglePlayPause()
         {
             Canvas.ClearLines(false, false);
 
-            switch (VideoPlayer.CurrentState)
-            {
-                case MediaElementState.Stopped:
-                case MediaElementState.Playing:
-                    VideoPlayer.Pause();
-                    LastVideoPosition = VideoPlayer.Position;
-                    break;
-                case MediaElementState.Paused:
-                    VideoPlayer.Visibility = Windows.UI.Xaml.Visibility.Visible;
-                    VideoPlayer.Play();
-                    break;
-            }
+            if (TogglePlayPauseEvent != null)
+                TogglePlayPauseEvent(this, new EventArgs());
         }
 
         private void LoadQuickPen(PenViewModel obj)
@@ -118,7 +108,7 @@ namespace HeadsUpVideo.Desktop.ViewModels
             RefreshQuickPens();
         }
 
-        private async void OpenFile(object obj)
+        private async void OpenFile()
         {
             var fileModel = await LocalIO.SelectAndOpenFile();
             CurrentFile = new FileViewModel() {
@@ -128,7 +118,10 @@ namespace HeadsUpVideo.Desktop.ViewModels
                 Stream = fileModel.Stream
             };
 
-            WelcomeScreenVisible = Visibility.Collapsed; 
+            if (FileOpened != null)
+                FileOpened(this, new EventArgs());
+
+            WelcomeScreenVisibility = Visibility.Collapsed; 
         }
 
         private void LoadRecentFiles()

@@ -9,9 +9,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" Height="Auto" Width="Auto">
     <Grid Background="white" x:Name="mainGrid">
-        <ContentControl Content="{Binding VideoPlayer}"/>
-        <Image x:Name="FullRink" Source="ms-appx:///Assets/FullSheetAngle.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Collapsed"/>
-        <Image x:Name="HalfRink" Source="ms-appx:///Assets/FullSheetLong.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Collapsed"/>
+        <MediaElement HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="VideoPlayer" AutoPlay="False" IsMuted="true"/>
+        <Image Source="{Binding DiagramBackground}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="{Binding DiagramVisibility}"/>
         <Canvas x:Name="LineCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Canvas>
         <cc:CustomInkCanvas x:Name="inkCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         <StackPanel Background="#44FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Right" Orientation="Vertical">
@@ -55,7 +54,7 @@
                 </StackPanel>
             </StackPanel>
         </AppBar>
-        <Grid x:Name="WelcomeScreen" VerticalAlignment="Center" HorizontalAlignment="Center" Width="Auto" Height="Auto" Visibility="{Binding WelcomeScreenVisibility}">
+        <Grid VerticalAlignment="Center" HorizontalAlignment="Center" Width="Auto" Height="Auto" Visibility="{Binding WelcomeScreenVisibility}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
@@ -67,10 +66,12 @@
         </Grid>
         <StackPanel x:Name="pnlControls" VerticalAlignment="Bottom"  HorizontalAlignment="Stretch" Margin="0,0,0,25">
             <Slider x:Name="Scrubber" HorizontalAlignment="Stretch" Value="50" Style="{StaticResource CircleSlider}"></Slider>
-            <StackPanel Height="Auto" Background="#44FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Bottom" Orientation="Horizontal">
-                <AppBarButton x:Name="btnPrev" HorizontalAlignment="Center" Icon="Previous" VerticalAlignment="Bottom" Label="Back"/>
-                <AppBarButton x:Name="btnPlay" HorizontalAlignment="Center" Icon="Play" VerticalAlignment="Bottom" Label="Play"/>
-                <AppBarButton x:Name="btnNext" HorizontalAlignment="Center" Icon="Next" VerticalAlignment="Bottom" Label="Next"/>
+            <StackPanel Height="Auto" HorizontalAlignment="Center" VerticalAlignment="Bottom" Orientation="Horizontal">
+                <!--<AppBarButton x:Name="Prev" HorizontalAlignment="Center" Icon="Previous" VerticalAlignment="Bottom" Label="Back"/>-->
+                <Button Command="{Binding PlayPauseCmd}" Background="#44FFFFFF">
+                    <AppBarButton x:Name="Play" HorizontalAlignment="Center" Icon="Play" VerticalAlignment="Bottom" Label="Play" Command="{Binding PlayPauseCmd}"/>
+                </Button>
+                <!--<AppBarButton x:Name="Next" HorizontalAlignment="Center" Icon="Next" VerticalAlignment="Bottom" Label="Next"/>-->
             </StackPanel>
         </StackPanel>
     </Grid>

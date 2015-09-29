@@ -2,7 +2,7 @@
 
 namespace HeadsUpVideo.Desktop.Commands
 {
-    public class OpenFileCommand : BaseCommand
+    public class OpenFileCommand : EmptyCommand
     {
         
     }

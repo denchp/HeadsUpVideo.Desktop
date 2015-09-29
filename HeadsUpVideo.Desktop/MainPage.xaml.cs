@@ -27,7 +27,8 @@ namespace HeadsUpVideo.Desktop
             this.DataContext = _viewModel;
             _viewModel.Initialize(inkCanvas);
             inkCanvas.Initialize(LineCanvas, _viewModel.CurrentPen);
-            _viewModel.VideoPlayer.CurrentStateChanged += VideoPlayer_CurrentStateChanged;
+            _viewModel.TogglePlayPauseEvent += _viewModel_TogglePlayPause;
+            _viewModel.FileOpened += _viewModel_FileOpened;
             Scrubber.ValueChanged += Scrubber_ValueChanged;
 
             _viewModel.QuickPens.CollectionChanged += QuickPens_CollectionChanged;
@@ -35,19 +36,27 @@ namespace HeadsUpVideo.Desktop
             this.Loaded += MainPage_Loaded;
         }
 
-        private void VideoPlayer_CurrentStateChanged(object sender, RoutedEventArgs e)
+        private void _viewModel_FileOpened(object sender, EventArgs e)
         {
-            switch (_viewModel.VideoPlayer.CurrentState)
+            VideoPlayer.SetSource(_viewModel.CurrentFile.Stream, _viewModel.CurrentFile.ContentType);
+        }
+        
+        private void _viewModel_TogglePlayPause(object sender, EventArgs e)
+        {
+            switch (VideoPlayer.CurrentState)
             {
                 case MediaElementState.Stopped:
                 case MediaElementState.Playing:
-                    btnPlay.Icon = new SymbolIcon(Symbol.Play);
-                    btnPlay.Label = "Play";
+                    Play.Icon = new SymbolIcon(Symbol.Play);
+                    Play.Label = "Play";
+                    VideoPlayer.Pause();
+                    _viewModel.LastVideoPosition = VideoPlayer.Position;
                     break;
                 case MediaElementState.Paused:
                     Scrubber.Value = 50;
-                    btnPlay.Icon = new SymbolIcon(Symbol.Pause);
-                    btnPlay.Label = "Pause";
+                    Play.Icon = new SymbolIcon(Symbol.Pause);
+                    Play.Label = "Pause";
+                    VideoPlayer.Play();
                     break;
             }
         }
@@ -72,15 +81,12 @@ namespace HeadsUpVideo.Desktop
             var thumb = MyFindSliderChildOfType<Thumb>(Scrubber);
 
             thumb.DragCompleted += Thumb_DragCompleted;
-
-            pnlControls.Visibility = Visibility.Collapsed;
-            WelcomeScreen.Visibility = Visibility.Visible;
         }
 
         private void Thumb_DragCompleted(object sender, DragCompletedEventArgs e)
         {
             Scrubber.Value = 50;
-            _viewModel.LastVideoPosition = _viewModel.VideoPlayer.Position;
+            _viewModel.LastVideoPosition = VideoPlayer.Position;
         }
 
         public static T MyFindSliderChildOfType<T>(DependencyObject root) where T : class
@@ -110,10 +116,10 @@ namespace HeadsUpVideo.Desktop
 
             if (scrubber.Value != 50)
             {
-                if (_viewModel.VideoPlayer.CurrentState == MediaElementState.Playing)
+                if (VideoPlayer.CurrentState == MediaElementState.Playing)
                     _viewModel.PlayPauseCmd.Execute(null);
 
-                _viewModel.VideoPlayer.Position = _viewModel.LastVideoPosition.Add(new TimeSpan(0, 0, 0, 0, (int)(scrubber.Value - 50) * 75));
+                VideoPlayer.Position = _viewModel.LastVideoPosition.Add(new TimeSpan(0, 0, 0, 0, (int)(scrubber.Value - 50) * 75));
             }
         }
 
