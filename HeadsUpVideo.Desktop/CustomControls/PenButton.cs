@@ -14,6 +14,7 @@ namespace HeadsUpVideo.Desktop.CustomControls
 
         public PenButton()
         {
+            PenModel = new PenViewModel();
             PenModel.PropertyChanged += PenModel_PropertyChanged;
         }
 

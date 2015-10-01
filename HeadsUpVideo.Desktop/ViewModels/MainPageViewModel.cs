@@ -19,13 +19,13 @@ namespace HeadsUpVideo.Desktop.ViewModels
 
         public ICustomCanvas Canvas { get; set; }
         public String DiagramBackground { get; set; }
-        
+
         public PenViewModel CurrentPen { get; set; }
         private FileViewModel currentFile;
         public FileViewModel CurrentFile
         {
-            get { return currentFile;  }
-            set { currentFile = value;  TriggerPropertyChange("CurrentFile");  }
+            get { return currentFile; }
+            set { currentFile = value; TriggerPropertyChange("CurrentFile"); }
         }
 
         public ObservableCollection<PenViewModel> QuickPens { get; set; }
@@ -40,6 +40,8 @@ namespace HeadsUpVideo.Desktop.ViewModels
         public LoadQuickPenCommand LoadQuickPenCmd { get; set; }
         public PlayPauseCommand PlayPauseCmd { get; set; }
         public ClearRecentFilesCommand ClearRecentFilesCmd { get; set; }
+        public ClearLinesCommand ClearLinesCmd { get; set; }
+        public CreateSavePointCommand CreateSavePointCmd {get; set;}
 
         private Visibility welcomeScreenVisibility;
         public Visibility WelcomeScreenVisibility
@@ -51,13 +53,20 @@ namespace HeadsUpVideo.Desktop.ViewModels
         private Visibility diagramVisibility;
         public Visibility DiagramVisibility
         {
-            get { return diagramVisibility;  }
+            get { return diagramVisibility; }
             set { diagramVisibility = value; TriggerPropertyChange("DiagramVisibility"); }
         }
 
         public MainPageViewModel()
         {
-            CurrentPen = new PenViewModel();
+            CurrentPen = new PenViewModel()
+            {
+                IsFreehand = true,
+                Color = Colors.Blue,
+                LineStyle = PenViewModel.LineType.Solid,
+                Size = 10
+            };
+
             CurrentFile = new FileViewModel();
             QuickPens = new ObservableCollection<PenViewModel>();
             RecentFiles = new ObservableCollection<FileViewModel>();
@@ -67,14 +76,6 @@ namespace HeadsUpVideo.Desktop.ViewModels
         {
             RecentFiles = new ObservableCollection<FileViewModel>();
             RecentFiles.CollectionChanged += RecentFiles_CollectionChanged;
-            CurrentPen = new PenViewModel()
-            {
-                IsFreehand = true,
-                Color = Colors.Blue,
-                LineStyle = PenViewModel.LineType.Solid,
-                Size = 10
-            };
-
             Canvas = canvas;
             WelcomeScreenVisibility = Visibility.Visible;
 
@@ -88,6 +89,18 @@ namespace HeadsUpVideo.Desktop.ViewModels
             LoadQuickPenCmd = new LoadQuickPenCommand() { CanExecuteFunc = obj => true, ExecuteFunc = LoadQuickPen };
             PlayPauseCmd = new PlayPauseCommand() { CanExecuteFunc = obj => true, ExecuteFunc = TogglePlayPause };
             ClearRecentFilesCmd = new ClearRecentFilesCommand() { CanExecuteFunc = obj => true, ExecuteFunc = ClearRecentFiles };
+            CreateSavePointCmd = new CreateSavePointCommand() { CanExecuteFunc = obj => true, ExecuteFunc = CreateSavePoint };
+            ClearLinesCmd = new ClearLinesCommand() { CanExecuteFunc = obj => true, ExecuteFunc = ClearLines };
+        }
+
+        private void ClearLines()
+        {
+            Canvas.Clear();
+        }
+
+        private void CreateSavePoint()
+        {
+            Canvas.CreateSavePoint();
         }
 
         private void RecentFiles_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -102,9 +115,16 @@ namespace HeadsUpVideo.Desktop.ViewModels
             LoadRecentFiles();
         }
 
-        private void OpenRecentFile(FileViewModel recentFile)
+        private async void OpenRecentFile(FileViewModel recentFile)
         {
-            CurrentFile = recentFile;
+            var file = await LocalIO.OpenFile(recentFile.Path, false);
+            CurrentFile = new FileViewModel()
+            {
+                ContentType = file.ContentType,
+                Path = file.Path,
+                Name = file.Name,
+                Stream = file.Stream
+            };
 
             if (FileOpened != null)
                 FileOpened(this, new EventArgs());
@@ -142,7 +162,8 @@ namespace HeadsUpVideo.Desktop.ViewModels
         private async void OpenFile()
         {
             var fileModel = await LocalIO.SelectAndOpenFile();
-            CurrentFile = new FileViewModel() {
+            CurrentFile = new FileViewModel()
+            {
                 ContentType = fileModel.ContentType,
                 Name = fileModel.Name,
                 Path = fileModel.Path,
@@ -152,7 +173,7 @@ namespace HeadsUpVideo.Desktop.ViewModels
             if (FileOpened != null)
                 FileOpened(this, new EventArgs());
 
-            WelcomeScreenVisibility = Visibility.Collapsed; 
+            WelcomeScreenVisibility = Visibility.Collapsed;
         }
 
         private void LoadRecentFiles()
@@ -172,7 +193,7 @@ namespace HeadsUpVideo.Desktop.ViewModels
 
         public void SetLineStyle(string style)
         {
-           switch (style)
+            switch (style)
             {
                 case "Solid":
                     CurrentPen.LineStyle = Models.PenModel.LineType.Solid;
@@ -231,7 +252,7 @@ namespace HeadsUpVideo.Desktop.ViewModels
                     IsFreehand = pen.IsFreehand,
                     IsHighlighter = pen.IsHighlighter,
                     LineStyle = pen.LineStyle,
-                    Size =pen.Size
+                    Size = pen.Size
                 });
             }
         }

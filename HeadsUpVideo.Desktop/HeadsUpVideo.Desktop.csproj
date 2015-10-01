@@ -97,8 +97,10 @@
     <Compile Include="Base\BaseCommand.cs" />
     <Compile Include="Base\EmptyCommand.cs" />
     <Compile Include="Base\StringCommand.cs" />
+    <Compile Include="Commands\ClearLinesCommand.cs" />
     <Compile Include="Commands\ClearQuickPensCommand.cs" />
     <Compile Include="Commands\ClearRecentFilesCommand.cs" />
+    <Compile Include="Commands\CreateSavePointCommand.cs" />
     <Compile Include="Commands\ImageLoadCommand.cs" />
     <Compile Include="Commands\LoadQuickPenCommand.cs" />
     <Compile Include="Commands\OpenRecentFileCommand.cs" />

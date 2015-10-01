@@ -10,14 +10,14 @@
     mc:Ignorable="d" Height="Auto" Width="Auto">
     <Grid Background="white" x:Name="mainGrid">
         <MediaElement HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="VideoPlayer" AutoPlay="False" IsMuted="true"/>
-        <Image Source="{Binding DiagramBackground}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="{Binding DiagramVisibility}"/>
+        <!--<Image Source="{Binding DiagramBackground}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="{Binding DiagramVisibility}"/>-->
         <Canvas x:Name="LineCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Canvas>
         <cc:CustomInkCanvas x:Name="inkCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-        <StackPanel Background="#44FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Right" Orientation="Vertical">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Right" Background="#44FFFFFF" Orientation="Vertical">
             <StackPanel Orientation="Vertical" x:Name="QuickPens">
             </StackPanel>
-            <AppBarButton x:Name="BtnSavePoint" Label="Save Point" Icon="Accept"/>
-            <AppBarButton x:Name="btnClear" Label="Clear" Icon="Delete"/>
+            <AppBarButton x:Name="BtnSavePoint" Label="Save Point" Icon="Accept" Command="{Binding CreateSavePointCmd}"/>
+            <AppBarButton x:Name="btnClear" Label="Clear" Icon="Delete" Command="{Binding ClearLinesCmd}"/>
         </StackPanel>
         <AppBar x:Name="TopBar" >
             <StackPanel x:Name="pnlMain" Height="Auto" VerticalAlignment="top"  HorizontalAlignment="Left" Orientation="Horizontal">
@@ -67,8 +67,6 @@
             </StackPanel>
             <Image Source="Assets/logo_cropped.png" Height="100" Grid.Column="1"/>
         </Grid>
-        <StackPanel x:Name="pnlControls" VerticalAlignment="Bottom"  HorizontalAlignment="Stretch" Margin="0,0,0,25">
-            <Slider x:Name="Scrubber" HorizontalAlignment="Stretch" Value="50" Style="{StaticResource CircleSlider}"></Slider>
-        </StackPanel>
+        <Slider x:Name="Scrubber" HorizontalAlignment="Stretch" Value="50" Style="{StaticResource CircleSlider}" Margin="0,0,0,25" VerticalAlignment="Bottom"></Slider>
     </Grid>
 </Page>
