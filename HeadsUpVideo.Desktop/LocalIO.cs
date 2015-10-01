@@ -65,7 +65,7 @@ namespace HeadsUpVideo.Desktop
         internal static async Task<FileModel> OpenFile(string path, bool addToRecentList)
         {
             var file = await StorageFile.GetFileFromPathAsync(path);
-            
+
             return await OpenFile(file, addToRecentList);
         }
 
@@ -79,13 +79,16 @@ namespace HeadsUpVideo.Desktop
                 if (addToRecentList)
                 {
                     var fileList = LoadRecentFileList();
-                    fileList.Add(new FileModel() { Path = file.Path, Name = file.Name });
-                    SaveRecentFileList(fileList);
-                    StorageApplicationPermissions.FutureAccessList.Add(file);
+                    if (!fileList.Any(x => x.Path == file.Path))
+                    {
+                        fileList.Add(new FileModel() { Path = file.Path, Name = file.Name });
+                        SaveRecentFileList(fileList);
+                        StorageApplicationPermissions.FutureAccessList.Add(file);
+                    }
                 }
 
                 var openResponse = await file.OpenAsync(Windows.Storage.FileAccessMode.Read);
-                
+
                 fileModel.Stream = openResponse;
 
                 return fileModel;
@@ -121,6 +124,11 @@ namespace HeadsUpVideo.Desktop
             }
         }
 
+        internal static void ClearRecentFiles()
+        {
+            SaveRecentFileList(new List<FileModel>());
+        }
+
         private static async void SaveRecentFileList(List<FileModel> files)
         {
             var folder = ApplicationData.Current.LocalFolder;
@@ -151,7 +159,7 @@ namespace HeadsUpVideo.Desktop
             openPicker.FileTypeFilter.Add(".avi");
 
             var openFileResponse = await openPicker.PickSingleFileAsync();
-            
+
             var result = await LocalIO.OpenFile(openFileResponse, true);
 
             return result;

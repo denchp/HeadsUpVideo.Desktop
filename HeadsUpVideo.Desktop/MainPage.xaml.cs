@@ -14,48 +14,80 @@ using Windows.UI.Xaml.Shapes;
 using HeadsUpVideo.Desktop.ViewModels;
 using System.ComponentModel;
 using HeadsUpVideo.Desktop.CustomControls;
+using System.Linq;
 
 namespace HeadsUpVideo.Desktop
 {
     public sealed partial class MainPage : Page
     {
-        public MainPageViewModel _viewModel = new MainPageViewModel();
+        public MainPageViewModel viewModel = new MainPageViewModel();
+        private Thumb sliderThumb;
+        private AppBarButton sliderButton;
 
         public MainPage()
         {
+            
+            this.DataContext = viewModel;
             this.InitializeComponent();
-            this.DataContext = _viewModel;
-            _viewModel.Initialize(inkCanvas);
-            inkCanvas.Initialize(LineCanvas, _viewModel.CurrentPen);
-            _viewModel.TogglePlayPauseEvent += _viewModel_TogglePlayPause;
-            _viewModel.FileOpened += _viewModel_FileOpened;
-            Scrubber.ValueChanged += Scrubber_ValueChanged;
 
-            _viewModel.QuickPens.CollectionChanged += QuickPens_CollectionChanged;
+            inkCanvas.Initialize(LineCanvas, viewModel.CurrentPen);
+            viewModel.Initialize(inkCanvas);
+            
+            Initialize();
+        }
 
+        private void Initialize()
+        {
             this.Loaded += MainPage_Loaded;
+            RecentFiles_CollectionChanged(this, null);
+
+            viewModel.TogglePlayPauseEvent += _viewModel_TogglePlayPause;
+            viewModel.FileOpened += _viewModel_FileOpened;
+            viewModel.RecentFilesUpdated += RecentFiles_CollectionChanged;
+            viewModel.QuickPens.CollectionChanged += QuickPens_CollectionChanged;
+
+            Scrubber.ValueChanged += Scrubber_ValueChanged;
+        }
+
+        private void RecentFiles_CollectionChanged(object sender, EventArgs e)
+        {
+            lstRecentFiles.Children.Clear();
+            stkRecentFiles.Visibility = Visibility.Collapsed;
+
+            if (viewModel.RecentFiles.Any())
+                stkRecentFiles.Visibility = Visibility.Visible;
+
+            foreach (var file in viewModel.RecentFiles)
+            {
+                var link = new HyperlinkButton()
+                {
+                    Content = file.Name,
+                    Command = viewModel.OpenRecentFileCmd,
+                    CommandParameter = file
+                };
+
+                lstRecentFiles.Children.Add(link);
+            }
         }
 
         private void _viewModel_FileOpened(object sender, EventArgs e)
         {
-            VideoPlayer.SetSource(_viewModel.CurrentFile.Stream, _viewModel.CurrentFile.ContentType);
+            VideoPlayer.SetSource(viewModel.CurrentFile.Stream, viewModel.CurrentFile.ContentType);
         }
-        
+
         private void _viewModel_TogglePlayPause(object sender, EventArgs e)
         {
             switch (VideoPlayer.CurrentState)
             {
                 case MediaElementState.Stopped:
                 case MediaElementState.Playing:
-                    Play.Icon = new SymbolIcon(Symbol.Play);
-                    Play.Label = "Play";
                     VideoPlayer.Pause();
-                    _viewModel.LastVideoPosition = VideoPlayer.Position;
+                    viewModel.LastVideoPosition = VideoPlayer.Position;
+                    sliderButton.Icon = new SymbolIcon(Symbol.Play);
                     break;
                 case MediaElementState.Paused:
                     Scrubber.Value = 50;
-                    Play.Icon = new SymbolIcon(Symbol.Pause);
-                    Play.Label = "Pause";
+                    sliderButton.Icon = new SymbolIcon(Symbol.Pause);
                     VideoPlayer.Play();
                     break;
             }
@@ -70,7 +102,7 @@ namespace HeadsUpVideo.Desktop
                 QuickPens.Children.Add(new PenButton()
                 {
                     PenModel = pen,
-                    Command = _viewModel.LoadQuickPenCmd,
+                    Command = viewModel.LoadQuickPenCmd,
                     CommandParameter = pen
                 });
             }
@@ -78,15 +110,22 @@ namespace HeadsUpVideo.Desktop
 
         private void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
-            var thumb = MyFindSliderChildOfType<Thumb>(Scrubber);
+            sliderThumb = MyFindSliderChildOfType<Thumb>(Scrubber);
+            sliderThumb.Tapped += Thumb_Tapped;
+            sliderThumb.DragCompleted += Thumb_DragCompleted;
 
-            thumb.DragCompleted += Thumb_DragCompleted;
+            sliderButton = MyFindSliderChildOfType<AppBarButton>(sliderThumb);
+        }
+
+        private void Thumb_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            viewModel.PlayPauseCmd.Execute(this);
         }
 
         private void Thumb_DragCompleted(object sender, DragCompletedEventArgs e)
         {
             Scrubber.Value = 50;
-            _viewModel.LastVideoPosition = VideoPlayer.Position;
+            viewModel.LastVideoPosition = VideoPlayer.Position;
         }
 
         public static T MyFindSliderChildOfType<T>(DependencyObject root) where T : class
@@ -117,9 +156,9 @@ namespace HeadsUpVideo.Desktop
             if (scrubber.Value != 50)
             {
                 if (VideoPlayer.CurrentState == MediaElementState.Playing)
-                    _viewModel.PlayPauseCmd.Execute(null);
+                    viewModel.PlayPauseCmd.Execute(null);
 
-                VideoPlayer.Position = _viewModel.LastVideoPosition.Add(new TimeSpan(0, 0, 0, 0, (int)(scrubber.Value - 50) * 75));
+                VideoPlayer.Position = viewModel.LastVideoPosition.Add(new TimeSpan(0, 0, 0, 0, (int)(scrubber.Value - 50) * 75));
             }
         }
 

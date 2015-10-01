@@ -21,7 +21,10 @@
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="Thumb">
-                                            <Ellipse StrokeThickness="4" Stroke="{TemplateBinding BorderBrush}" Fill="{TemplateBinding Foreground}"/>
+                                            <Grid>
+                                                <Ellipse StrokeThickness="4" Stroke="{TemplateBinding BorderBrush}" Fill="{TemplateBinding Foreground}"/>
+                                                <AppBarButton IsEnabled="False" Background="Transparent" Icon="Play" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Height="Auto" Width="Auto" Margin="4,-6,0,0"/>
+                                            </Grid>
                                         </ControlTemplate>
                                     </Setter.Value>
                                 </Setter>

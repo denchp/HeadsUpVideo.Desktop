@@ -46,6 +46,7 @@ namespace HeadsUpVideo.Desktop.CustomControls
             Canvas = canvas;
 
             CurrentPen.PropertyChanged += PenChanged;
+            PenChanged(this, null);
         }
 
         private void PenChanged(object sender, PropertyChangedEventArgs e)

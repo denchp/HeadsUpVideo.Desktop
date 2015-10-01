@@ -12,7 +12,13 @@ namespace HeadsUpVideo.Desktop
                 throw new ArgumentNullException("knots");
             int n = knots.Length - 1;
             if (n < 1)
-                throw new ArgumentException("At least two knot points required", "knots");
+            {
+                firstControlPoints = new Point[0];
+                secondControlPoints = new Point[0];
+
+                return;
+            }
+
             if (n == 1)
             { // Special case: Bezier curve should be a straight line.
                 firstControlPoints = new Point[1];

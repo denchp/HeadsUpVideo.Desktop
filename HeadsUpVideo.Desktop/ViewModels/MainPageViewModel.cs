@@ -15,6 +15,7 @@ namespace HeadsUpVideo.Desktop.ViewModels
     {
         public event EventHandler TogglePlayPauseEvent;
         public event EventHandler FileOpened;
+        public event EventHandler RecentFilesUpdated;
 
         public ICustomCanvas Canvas { get; set; }
         public String DiagramBackground { get; set; }
@@ -32,11 +33,13 @@ namespace HeadsUpVideo.Desktop.ViewModels
         public TimeSpan LastVideoPosition { get; set; }
 
         public OpenFileCommand OpenFileCmd { get; set; }
+        public OpenRecentFileCommand OpenRecentFileCmd { get; set; }
         public SetLineStyleCommand SetLineStyleCmd { get; set; }
         public ClearQuickPensCommand ClearQuickPensCmd { get; set; }
         public SaveQuickPenCommand SaveQuickPenCmd { get; set; }
         public LoadQuickPenCommand LoadQuickPenCmd { get; set; }
         public PlayPauseCommand PlayPauseCmd { get; set; }
+        public ClearRecentFilesCommand ClearRecentFilesCmd { get; set; }
 
         private Visibility welcomeScreenVisibility;
         public Visibility WelcomeScreenVisibility
@@ -62,6 +65,8 @@ namespace HeadsUpVideo.Desktop.ViewModels
 
         public void Initialize(ICustomCanvas canvas)
         {
+            RecentFiles = new ObservableCollection<FileViewModel>();
+            RecentFiles.CollectionChanged += RecentFiles_CollectionChanged;
             CurrentPen = new PenViewModel()
             {
                 IsFreehand = true,
@@ -69,16 +74,42 @@ namespace HeadsUpVideo.Desktop.ViewModels
                 LineStyle = PenViewModel.LineType.Solid,
                 Size = 10
             };
+
             Canvas = canvas;
             WelcomeScreenVisibility = Visibility.Visible;
 
             LoadRecentFiles();
+
             OpenFileCmd = new OpenFileCommand() { CanExecuteFunc = obj => true, ExecuteFunc = OpenFile };
+            OpenRecentFileCmd = new OpenRecentFileCommand() { CanExecuteFunc = obj => true, ExecuteFunc = OpenRecentFile };
             SetLineStyleCmd = new SetLineStyleCommand() { CanExecuteFunc = obj => true, ExecuteFunc = SetLineStyle };
             ClearQuickPensCmd = new ClearQuickPensCommand() { CanExecuteFunc = obj => true, ExecuteFunc = ClearQuickPens };
             SaveQuickPenCmd = new SaveQuickPenCommand() { CanExecuteFunc = obj => true, ExecuteFunc = SaveQuickPen };
             LoadQuickPenCmd = new LoadQuickPenCommand() { CanExecuteFunc = obj => true, ExecuteFunc = LoadQuickPen };
             PlayPauseCmd = new PlayPauseCommand() { CanExecuteFunc = obj => true, ExecuteFunc = TogglePlayPause };
+            ClearRecentFilesCmd = new ClearRecentFilesCommand() { CanExecuteFunc = obj => true, ExecuteFunc = ClearRecentFiles };
+        }
+
+        private void RecentFiles_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (RecentFilesUpdated != null)
+                RecentFilesUpdated(this, new EventArgs());
+        }
+
+        private void ClearRecentFiles()
+        {
+            LocalIO.ClearRecentFiles();
+            LoadRecentFiles();
+        }
+
+        private void OpenRecentFile(FileViewModel recentFile)
+        {
+            CurrentFile = recentFile;
+
+            if (FileOpened != null)
+                FileOpened(this, new EventArgs());
+
+            WelcomeScreenVisibility = Visibility.Collapsed;
         }
 
         private void TogglePlayPause()

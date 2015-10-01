@@ -59,20 +59,16 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <StackPanel x:Name="lstRecentFiles" BorderThickness="1,1,1,1" Grid.Column="0">
+            <StackPanel BorderBrush="Gray" x:Name="stkRecentFiles" BorderThickness="1,1,1,1" Grid.Column="0">
                 <TextBlock Text="Recent Files:"/>
+                <Button Content="Clear Recent Files" Command="{Binding ClearRecentFilesCmd}"/>
+                <StackPanel x:Name="lstRecentFiles">
+                </StackPanel>
             </StackPanel>
             <Image Source="Assets/logo_cropped.png" Height="100" Grid.Column="1"/>
         </Grid>
         <StackPanel x:Name="pnlControls" VerticalAlignment="Bottom"  HorizontalAlignment="Stretch" Margin="0,0,0,25">
             <Slider x:Name="Scrubber" HorizontalAlignment="Stretch" Value="50" Style="{StaticResource CircleSlider}"></Slider>
-            <StackPanel Height="Auto" HorizontalAlignment="Center" VerticalAlignment="Bottom" Orientation="Horizontal">
-                <!--<AppBarButton x:Name="Prev" HorizontalAlignment="Center" Icon="Previous" VerticalAlignment="Bottom" Label="Back"/>-->
-                <Button Command="{Binding PlayPauseCmd}" Background="#44FFFFFF">
-                    <AppBarButton x:Name="Play" HorizontalAlignment="Center" Icon="Play" VerticalAlignment="Bottom" Label="Play" Command="{Binding PlayPauseCmd}"/>
-                </Button>
-                <!--<AppBarButton x:Name="Next" HorizontalAlignment="Center" Icon="Next" VerticalAlignment="Bottom" Label="Next"/>-->
-            </StackPanel>
         </StackPanel>
     </Grid>
 </Page>
