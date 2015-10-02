@@ -55,9 +55,12 @@ namespace HeadsUpVideo.Desktop
                     serializer.Serialize(fileStream, currentPens);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                var dialog = new MessageDialog("Error saving quick pens list.  If this problem continues please contact support.");
+                while (ex.InnerException != null)
+                    ex = ex.InnerException;
+
+                var dialog = new MessageDialog("Error saving quick pens list.  If this problem continues please contact support.\r\n" + ex.Message);
                 await dialog.ShowAsync();
             }
         }
@@ -159,6 +162,9 @@ namespace HeadsUpVideo.Desktop
             openPicker.FileTypeFilter.Add(".avi");
 
             var openFileResponse = await openPicker.PickSingleFileAsync();
+
+            if (openFileResponse == null)
+                return null;
 
             var result = await LocalIO.OpenFile(openFileResponse, true);
 

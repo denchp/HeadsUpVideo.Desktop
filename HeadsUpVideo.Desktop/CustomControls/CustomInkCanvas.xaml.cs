@@ -1,20 +1,21 @@
 ﻿using HeadsUpVideo.Desktop.Interfaces;
 using HeadsUpVideo.Desktop.ViewModels;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.UI.Input.Inking;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Shapes;
 
+// The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
+
 namespace HeadsUpVideo.Desktop.CustomControls
 {
-    public class CustomInkCanvas : InkCanvas, ICustomCanvas
+    /// <summary>
+    /// An empty page that can be used on its own or navigated to within a Frame.
+    /// </summary>
+    public sealed partial class CustomInkCanvas : UserControl, ICustomCanvas
     {
         List<Path> _savePoint;
         List<Path> _activeTemplate;
@@ -22,19 +23,23 @@ namespace HeadsUpVideo.Desktop.CustomControls
         List<Polyline> _polylines;
         List<Polyline> _polylineSavePoint;
         InkSynchronizer _synch;
-
-        Canvas Canvas { get; set; }
-        PenViewModel CurrentPen { get; set; }
+        InkCanvas _inkCanvas;
+        Canvas _canvas;
+        PenViewModel _currentPen;
 
         public CustomInkCanvas()
         {
-            _synch = this.InkPresenter.ActivateCustomDrying();
+            this.InitializeComponent();
+            _inkCanvas = this.InkCanvas;
+            _canvas = this.LineCanvas;
 
-            this.InkPresenter.InputDeviceTypes = Windows.UI.Core.CoreInputDeviceTypes.Mouse | Windows.UI.Core.CoreInputDeviceTypes.Pen;
-            this.InkPresenter.StrokesCollected += InkPresenter_StrokesCollected;
+            _synch = _inkCanvas.InkPresenter.ActivateCustomDrying();
+
+            _inkCanvas.InkPresenter.InputDeviceTypes = Windows.UI.Core.CoreInputDeviceTypes.Mouse | Windows.UI.Core.CoreInputDeviceTypes.Pen;
+            _inkCanvas.InkPresenter.StrokesCollected += InkPresenter_StrokesCollected;
         }
 
-        public void Initialize(Canvas canvas, PenViewModel pen)
+        public void Initialize(PenViewModel pen)
         {
             _savePoint = new List<Path>();
             _activeTemplate = new List<Path>();
@@ -42,10 +47,9 @@ namespace HeadsUpVideo.Desktop.CustomControls
             _polylines = new List<Polyline>();
             _polylineSavePoint = new List<Polyline>();
 
-            CurrentPen = pen;
-            Canvas = canvas;
+            _currentPen = pen;
+            _currentPen.PropertyChanged += PenChanged;
 
-            CurrentPen.PropertyChanged += PenChanged;
             PenChanged(this, null);
         }
 
@@ -53,13 +57,14 @@ namespace HeadsUpVideo.Desktop.CustomControls
         {
             var newInk = new InkDrawingAttributes()
             {
-                Color = CurrentPen.Color,
+                Color = _currentPen.Color,
                 FitToCurve = false,
-                Size = new Size(CurrentPen.Size, CurrentPen.Size),
-                IgnorePressure = true
+                Size = new Size(_currentPen.Size, _currentPen.Size),
+                IgnorePressure = false,
+                DrawAsHighlighter = _currentPen.IsHighlighter
             };
 
-            this.InkPresenter.UpdateDefaultDrawingAttributes(newInk);
+            _inkCanvas.InkPresenter.UpdateDefaultDrawingAttributes(newInk);
         }
 
         private void InkPresenter_StrokesCollected(InkPresenter sender, InkStrokesCollectedEventArgs args)
@@ -98,7 +103,7 @@ namespace HeadsUpVideo.Desktop.CustomControls
                 if (includePoint % includeInterval != 0) // make sure we don't chop off the end of the line!
                     points.Add(lastPoint);
 
-                if (!CurrentPen.IsFreehand)
+                if (!_currentPen.IsFreehand)
                     points = new List<Point> { points[0], points[points.Count - 1] };
 
                 // Get Bezier Spline Control Points.
@@ -131,41 +136,44 @@ namespace HeadsUpVideo.Desktop.CustomControls
 
                 var path = new Path()
                 {
-                    Stroke = new SolidColorBrush(CurrentPen.Color),
-                    StrokeThickness = CurrentPen.Size,
+                    Stroke = new SolidColorBrush(_currentPen.Color),
+                    Opacity = _currentPen.IsHighlighter ? .5 : 1,
+                    StrokeThickness = _currentPen.Size,
                     StrokeEndLineCap = PenLineCap.Triangle,
                     Data = geometry
                 };
 
 
-                if (CurrentPen.EnableArrow)
+                if (_currentPen.EnableArrow)
                 {
-                    var arrowheadPath = new Polyline();
-                    arrowheadPath.Fill = new SolidColorBrush(CurrentPen.Color);
+                    var arrowheadPath = new Polyline()
+                    {
+                        Fill = new SolidColorBrush(_currentPen.Color),
+                        Opacity = _currentPen.IsHighlighter ? .5 : 1
+                    };
 
-                    foreach (var p in LineHelpers.DrawArrow(bearingPoint, lastPoint, CurrentPen.Size * 1.3))
+                    foreach (var p in LineHelpers.DrawArrow(bearingPoint, lastPoint, _currentPen.Size * 1.3))
                         arrowheadPath.Points.Add(p);
 
                     _polylines.Add(arrowheadPath);
                 }
 
 
-                if (CurrentPen.LineStyle == PenViewModel.LineType.Dashed)
+                if (_currentPen.LineStyle == PenViewModel.LineType.Dashed)
                     path.StrokeDashArray = new DoubleCollection() { 5, 2 };
 
                 _lines.Add(path);
 
-                Canvas.Children.Clear();
+                _canvas.Children.Clear();
 
                 foreach (var line in _lines)
-                    Canvas.Children.Add(line);
+                    _canvas.Children.Add(line);
 
                 foreach (var polyline in _polylines)
-                    Canvas.Children.Add(polyline);
-
+                    _canvas.Children.Add(polyline);
             }
         }
-        
+
         public void CreateSavePoint()
         {
             _savePoint = new List<Path>();
@@ -194,7 +202,7 @@ namespace HeadsUpVideo.Desktop.CustomControls
 
         public void ClearLines(bool restoreSave = false, bool restoreTemplate = false)
         {
-            Canvas.Children.Clear();
+            _canvas.Children.Clear();
             _lines.Clear();
             _polylines.Clear();
 
@@ -212,11 +220,16 @@ namespace HeadsUpVideo.Desktop.CustomControls
                     _lines.Add(line);
 
             foreach (var line in _lines)
-                Canvas.Children.Add(line);
+                _canvas.Children.Add(line);
 
             foreach (var polyline in _polylines)
-                Canvas.Children.Add(polyline);
+                _canvas.Children.Add(polyline);
         }
 
+        public void SetPen(PenViewModel currentPen)
+        {
+            _currentPen = currentPen;
+            PenChanged(this, null);
+        }
     }
 }

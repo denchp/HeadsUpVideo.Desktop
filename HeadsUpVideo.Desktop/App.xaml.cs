@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HeadsUpVideo.Desktop.Pages;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -135,7 +136,7 @@ namespace HeadsUpVideo.Desktop
                 // configuring the new page by passing required information as a navigation
                 // parameter
 
-                rootFrame.Navigate(typeof(MainPage), e.Arguments);
+                rootFrame.Navigate(typeof(MasterPage), e.Arguments);
             }
             // Ensure the current window is active
             Window.Current.Activate();

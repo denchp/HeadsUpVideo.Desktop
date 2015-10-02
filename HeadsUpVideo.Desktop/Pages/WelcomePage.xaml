@@ -1,0 +1,22 @@
+﻿<Page
+    x:Class="HeadsUpVideo.Desktop.Pages.WelcomePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:HeadsUpVideo.Desktop"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <Grid VerticalAlignment="Center" HorizontalAlignment="Center" Width="Auto" Height="Auto">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel BorderBrush="Gray" x:Name="stkRecentFiles" BorderThickness="1,1,1,1" Grid.Column="0">
+            <TextBlock Text="Recent Files:"/>
+            <Button Content="Clear Recent Files" Command="{Binding ClearRecentFilesCmd}"/>
+            <StackPanel x:Name="lstRecentFiles">
+            </StackPanel>
+        </StackPanel>
+        <Image Source="../Assets/logo_cropped.png" Height="100" Grid.Column="1"/>
+    </Grid>
+</Page>

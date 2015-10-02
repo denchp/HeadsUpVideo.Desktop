@@ -1,5 +1,5 @@
 ﻿<Page
-    x:Class="HeadsUpVideo.Desktop.MainPage"
+    x:Class="HeadsUpVideo.Desktop.Pages.VideoPage"
     xmlns:cc="using:HeadsUpVideo.Desktop.CustomControls"
     xmlns:vm="using:HeadsUpVideo.Desktop.Models"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -10,8 +10,6 @@
     mc:Ignorable="d" Height="Auto" Width="Auto">
     <Grid Background="white" x:Name="mainGrid">
         <MediaElement HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="VideoPlayer" AutoPlay="False" IsMuted="true"/>
-        <!--<Image Source="{Binding DiagramBackground}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="{Binding DiagramVisibility}"/>-->
-        <Canvas x:Name="LineCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Canvas>
         <cc:CustomInkCanvas x:Name="inkCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Right" Background="#44FFFFFF" Orientation="Vertical">
             <StackPanel Orientation="Vertical" x:Name="QuickPens">
@@ -54,19 +52,6 @@
                 </StackPanel>
             </StackPanel>
         </AppBar>
-        <Grid VerticalAlignment="Center" HorizontalAlignment="Center" Width="Auto" Height="Auto" Visibility="{Binding WelcomeScreenVisibility}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <StackPanel BorderBrush="Gray" x:Name="stkRecentFiles" BorderThickness="1,1,1,1" Grid.Column="0">
-                <TextBlock Text="Recent Files:"/>
-                <Button Content="Clear Recent Files" Command="{Binding ClearRecentFilesCmd}"/>
-                <StackPanel x:Name="lstRecentFiles">
-                </StackPanel>
-            </StackPanel>
-            <Image Source="Assets/logo_cropped.png" Height="100" Grid.Column="1"/>
-        </Grid>
         <Slider x:Name="Scrubber" HorizontalAlignment="Stretch" Value="50" Style="{StaticResource CircleSlider}" Margin="0,0,0,25" VerticalAlignment="Bottom"></Slider>
     </Grid>
 </Page>

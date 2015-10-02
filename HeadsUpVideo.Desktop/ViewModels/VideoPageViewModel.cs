@@ -11,29 +11,19 @@ using Windows.UI.Xaml;
 
 namespace HeadsUpVideo.Desktop.ViewModels
 {
-    public class MainPageViewModel : NotifyPropertyChangedBase
+    class VideoPageViewModel : MasterPageViewModel
     {
         public event EventHandler TogglePlayPauseEvent;
-        public event EventHandler FileOpened;
         public event EventHandler RecentFilesUpdated;
 
         public ICustomCanvas Canvas { get; set; }
-        public String DiagramBackground { get; set; }
 
         public PenViewModel CurrentPen { get; set; }
-        private FileViewModel currentFile;
-        public FileViewModel CurrentFile
-        {
-            get { return currentFile; }
-            set { currentFile = value; TriggerPropertyChange("CurrentFile"); }
-        }
-
+        
         public ObservableCollection<PenViewModel> QuickPens { get; set; }
         public ObservableCollection<FileViewModel> RecentFiles { get; set; }
         public TimeSpan LastVideoPosition { get; set; }
 
-        public OpenFileCommand OpenFileCmd { get; set; }
-        public OpenRecentFileCommand OpenRecentFileCmd { get; set; }
         public SetLineStyleCommand SetLineStyleCmd { get; set; }
         public ClearQuickPensCommand ClearQuickPensCmd { get; set; }
         public SaveQuickPenCommand SaveQuickPenCmd { get; set; }
@@ -41,7 +31,7 @@ namespace HeadsUpVideo.Desktop.ViewModels
         public PlayPauseCommand PlayPauseCmd { get; set; }
         public ClearRecentFilesCommand ClearRecentFilesCmd { get; set; }
         public ClearLinesCommand ClearLinesCmd { get; set; }
-        public CreateSavePointCommand CreateSavePointCmd {get; set;}
+        public CreateSavePointCommand CreateSavePointCmd { get; set; }
 
         private Visibility welcomeScreenVisibility;
         public Visibility WelcomeScreenVisibility
@@ -57,7 +47,7 @@ namespace HeadsUpVideo.Desktop.ViewModels
             set { diagramVisibility = value; TriggerPropertyChange("DiagramVisibility"); }
         }
 
-        public MainPageViewModel()
+        public VideoPageViewModel()
         {
             CurrentPen = new PenViewModel()
             {
@@ -70,6 +60,15 @@ namespace HeadsUpVideo.Desktop.ViewModels
             CurrentFile = new FileViewModel();
             QuickPens = new ObservableCollection<PenViewModel>();
             RecentFiles = new ObservableCollection<FileViewModel>();
+            
+            SetLineStyleCmd = new SetLineStyleCommand() { CanExecuteFunc = obj => true, ExecuteFunc = SetLineStyle };
+            ClearQuickPensCmd = new ClearQuickPensCommand() { CanExecuteFunc = obj => true, ExecuteFunc = ClearQuickPens };
+            SaveQuickPenCmd = new SaveQuickPenCommand() { CanExecuteFunc = obj => true, ExecuteFunc = SaveQuickPen };
+            LoadQuickPenCmd = new LoadQuickPenCommand() { CanExecuteFunc = obj => true, ExecuteFunc = LoadQuickPen };
+            PlayPauseCmd = new PlayPauseCommand() { CanExecuteFunc = obj => true, ExecuteFunc = TogglePlayPause };
+            ClearRecentFilesCmd = new ClearRecentFilesCommand() { CanExecuteFunc = obj => true, ExecuteFunc = ClearRecentFiles };
+            CreateSavePointCmd = new CreateSavePointCommand() { CanExecuteFunc = obj => true, ExecuteFunc = CreateSavePoint };
+            ClearLinesCmd = new ClearLinesCommand() { CanExecuteFunc = obj => true, ExecuteFunc = ClearLines };
         }
 
         public void Initialize(ICustomCanvas canvas)
@@ -80,17 +79,7 @@ namespace HeadsUpVideo.Desktop.ViewModels
             WelcomeScreenVisibility = Visibility.Visible;
 
             LoadRecentFiles();
-
-            OpenFileCmd = new OpenFileCommand() { CanExecuteFunc = obj => true, ExecuteFunc = OpenFile };
-            OpenRecentFileCmd = new OpenRecentFileCommand() { CanExecuteFunc = obj => true, ExecuteFunc = OpenRecentFile };
-            SetLineStyleCmd = new SetLineStyleCommand() { CanExecuteFunc = obj => true, ExecuteFunc = SetLineStyle };
-            ClearQuickPensCmd = new ClearQuickPensCommand() { CanExecuteFunc = obj => true, ExecuteFunc = ClearQuickPens };
-            SaveQuickPenCmd = new SaveQuickPenCommand() { CanExecuteFunc = obj => true, ExecuteFunc = SaveQuickPen };
-            LoadQuickPenCmd = new LoadQuickPenCommand() { CanExecuteFunc = obj => true, ExecuteFunc = LoadQuickPen };
-            PlayPauseCmd = new PlayPauseCommand() { CanExecuteFunc = obj => true, ExecuteFunc = TogglePlayPause };
-            ClearRecentFilesCmd = new ClearRecentFilesCommand() { CanExecuteFunc = obj => true, ExecuteFunc = ClearRecentFiles };
-            CreateSavePointCmd = new CreateSavePointCommand() { CanExecuteFunc = obj => true, ExecuteFunc = CreateSavePoint };
-            ClearLinesCmd = new ClearLinesCommand() { CanExecuteFunc = obj => true, ExecuteFunc = ClearLines };
+            RefreshQuickPens();
         }
 
         private void ClearLines()
@@ -115,23 +104,6 @@ namespace HeadsUpVideo.Desktop.ViewModels
             LoadRecentFiles();
         }
 
-        private async void OpenRecentFile(FileViewModel recentFile)
-        {
-            var file = await LocalIO.OpenFile(recentFile.Path, false);
-            CurrentFile = new FileViewModel()
-            {
-                ContentType = file.ContentType,
-                Path = file.Path,
-                Name = file.Name,
-                Stream = file.Stream
-            };
-
-            if (FileOpened != null)
-                FileOpened(this, new EventArgs());
-
-            WelcomeScreenVisibility = Visibility.Collapsed;
-        }
-
         private void TogglePlayPause()
         {
             Canvas.ClearLines(false, false);
@@ -143,6 +115,7 @@ namespace HeadsUpVideo.Desktop.ViewModels
         private void LoadQuickPen(PenViewModel obj)
         {
             CurrentPen = obj;
+            Canvas.SetPen(CurrentPen);
         }
 
         private void ClearQuickPens(object obj)
@@ -155,25 +128,20 @@ namespace HeadsUpVideo.Desktop.ViewModels
         {
             QuickPens.Add(CurrentPen);
 
-            LocalIO.SaveQuickPens(QuickPens.Cast<PenModel>());
-            RefreshQuickPens();
-        }
+            var tempList = new List<PenModel>();
 
-        private async void OpenFile()
-        {
-            var fileModel = await LocalIO.SelectAndOpenFile();
-            CurrentFile = new FileViewModel()
-            {
-                ContentType = fileModel.ContentType,
-                Name = fileModel.Name,
-                Path = fileModel.Path,
-                Stream = fileModel.Stream
-            };
+            foreach (var pen in QuickPens)
+                tempList.Add(new PenModel()
+                {
+                    Color = pen.Color,
+                    Size = pen.Size,
+                    EnableArrow = pen.EnableArrow,
+                    IsFreehand = pen.IsFreehand,
+                    IsHighlighter = pen.IsHighlighter,
+                    LineStyle = pen.LineStyle
+                });
 
-            if (FileOpened != null)
-                FileOpened(this, new EventArgs());
-
-            WelcomeScreenVisibility = Visibility.Collapsed;
+            LocalIO.SaveQuickPens(tempList);
         }
 
         private void LoadRecentFiles()

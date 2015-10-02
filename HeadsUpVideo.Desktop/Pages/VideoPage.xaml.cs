@@ -1,36 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
-using Windows.Foundation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
-using Windows.UI.Input.Inking;
-using Windows.UI;
-using Windows.UI.Popups;
-using Windows.UI.ViewManagement;
-using Windows.UI.Xaml.Shapes;
 using HeadsUpVideo.Desktop.ViewModels;
-using System.ComponentModel;
 using HeadsUpVideo.Desktop.CustomControls;
 using System.Linq;
 
-namespace HeadsUpVideo.Desktop
+namespace HeadsUpVideo.Desktop.Pages
 {
-    public sealed partial class MainPage : Page
+    public sealed partial class VideoPage : Page
     {
-        public MainPageViewModel viewModel = new MainPageViewModel();
+        private VideoPageViewModel viewModel = new VideoPageViewModel();
         private Thumb sliderThumb;
         private AppBarButton sliderButton;
 
-        public MainPage()
+        public VideoPage()
         {
-            
             this.DataContext = viewModel;
             this.InitializeComponent();
 
-            inkCanvas.Initialize(LineCanvas, viewModel.CurrentPen);
+            viewModel.QuickPens.CollectionChanged += QuickPens_CollectionChanged;
+
+            inkCanvas.Initialize(viewModel.CurrentPen);
             viewModel.Initialize(inkCanvas);
             
             Initialize();
@@ -38,36 +32,12 @@ namespace HeadsUpVideo.Desktop
 
         private void Initialize()
         {
-            this.Loaded += MainPage_Loaded;
-            RecentFiles_CollectionChanged(this, null);
-
+            this.Loaded += VideoPage_Loaded;
+            
             viewModel.TogglePlayPauseEvent += _viewModel_TogglePlayPause;
             viewModel.FileOpened += _viewModel_FileOpened;
-            viewModel.RecentFilesUpdated += RecentFiles_CollectionChanged;
-            viewModel.QuickPens.CollectionChanged += QuickPens_CollectionChanged;
-
+            
             Scrubber.ValueChanged += Scrubber_ValueChanged;
-        }
-
-        private void RecentFiles_CollectionChanged(object sender, EventArgs e)
-        {
-            lstRecentFiles.Children.Clear();
-            stkRecentFiles.Visibility = Visibility.Collapsed;
-
-            if (viewModel.RecentFiles.Any())
-                stkRecentFiles.Visibility = Visibility.Visible;
-
-            foreach (var file in viewModel.RecentFiles)
-            {
-                var link = new HyperlinkButton()
-                {
-                    Content = file.Name,
-                    Command = viewModel.OpenRecentFileCmd,
-                    CommandParameter = file
-                };
-
-                lstRecentFiles.Children.Add(link);
-            }
         }
 
         private void _viewModel_FileOpened(object sender, EventArgs e)
@@ -96,19 +66,18 @@ namespace HeadsUpVideo.Desktop
         private void QuickPens_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             QuickPens.Children.Clear();
-
-            foreach (PenViewModel pen in e.NewItems)
+            
+            foreach (PenViewModel pen in viewModel.QuickPens)
             {
-                QuickPens.Children.Add(new PenButton()
+                QuickPens.Children.Add(new PenButton(pen)
                 {
-                    PenModel = pen,
                     Command = viewModel.LoadQuickPenCmd,
                     CommandParameter = pen
                 });
             }
         }
 
-        private void MainPage_Loaded(object sender, RoutedEventArgs e)
+        private void VideoPage_Loaded(object sender, RoutedEventArgs e)
         {
             sliderThumb = MyFindSliderChildOfType<Thumb>(Scrubber);
             sliderThumb.Tapped += Thumb_Tapped;
@@ -146,6 +115,7 @@ namespace HeadsUpVideo.Desktop
                     MyQueue.Enqueue(child);
                 }
             }
+
             return null;
         }
 
@@ -161,6 +131,5 @@ namespace HeadsUpVideo.Desktop
                 VideoPlayer.Position = viewModel.LastVideoPosition.Add(new TimeSpan(0, 0, 0, 0, (int)(scrubber.Value - 50) * 75));
             }
         }
-
     }
 }
