@@ -7,7 +7,5 @@ using System.Threading.Tasks;
 
 namespace HeadsUpVideo.Desktop.Commands
 {
-    public class ClearRecentFilesCommand : EmptyCommand
-    {
-    }
+
 }

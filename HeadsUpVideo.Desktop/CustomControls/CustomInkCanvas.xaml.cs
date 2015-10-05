@@ -1,8 +1,12 @@
-﻿using HeadsUpVideo.Desktop.Interfaces;
+﻿using HeadsUpVideo.Desktop.Base;
+using HeadsUpVideo.Desktop.Interfaces;
+using HeadsUpVideo.Desktop.Models;
 using HeadsUpVideo.Desktop.ViewModels;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Windows.Foundation;
+using Windows.UI;
 using Windows.UI.Input.Inking;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
@@ -25,18 +29,47 @@ namespace HeadsUpVideo.Desktop.CustomControls
         InkSynchronizer _synch;
         InkCanvas _inkCanvas;
         Canvas _canvas;
-        PenViewModel _currentPen;
+
+        public Command ClearQuickPensCmd { get; set; }
+        public Command SaveQuickPenCmd { get; set; }
+        public Command ClearLinesCmd { get; set; }
+        public Command CreateSavePointCmd { get; set; }
+        public Command<string> SetLineStyleCmd { get; set; }
+        public Command<PenViewModel> LoadQuickPenCmd { get; set; }
+
+        public ObservableCollection<PenViewModel> QuickPens { get; set; }
+        public PenViewModel CurrentPen { get; set; }
+
 
         public CustomInkCanvas()
         {
+            CurrentPen = new PenViewModel()
+            {
+                IsFreehand = true,
+                Color = Colors.Blue,
+                LineStyle = PenViewModel.LineType.Solid,
+                Size = 10
+            };
+
             this.InitializeComponent();
             _inkCanvas = this.InkCanvas;
             _canvas = this.LineCanvas;
+            _lines = new List<Path>();
+            _polylines = new List<Polyline>();
+            _savePoint = new List<Path>();
+            _polylineSavePoint = new List<Polyline>();
 
             _synch = _inkCanvas.InkPresenter.ActivateCustomDrying();
-
             _inkCanvas.InkPresenter.InputDeviceTypes = Windows.UI.Core.CoreInputDeviceTypes.Mouse | Windows.UI.Core.CoreInputDeviceTypes.Pen;
             _inkCanvas.InkPresenter.StrokesCollected += InkPresenter_StrokesCollected;
+
+            QuickPens = new ObservableCollection<PenViewModel>();
+            CreateSavePointCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = CreateSavePoint };
+            ClearQuickPensCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = ClearQuickPens };
+            SaveQuickPenCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = SaveQuickPen };
+            LoadQuickPenCmd = new Command<PenViewModel>() { CanExecuteFunc = obj => true, ExecuteFunc = LoadQuickPen };
+            ClearLinesCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = Clear };
+            SetLineStyleCmd = new Command<string>() { CanExecuteFunc = obj => true, ExecuteFunc = SetLineStyle };
         }
 
         public void Initialize(PenViewModel pen)
@@ -47,8 +80,10 @@ namespace HeadsUpVideo.Desktop.CustomControls
             _polylines = new List<Polyline>();
             _polylineSavePoint = new List<Polyline>();
 
-            _currentPen = pen;
-            _currentPen.PropertyChanged += PenChanged;
+            CurrentPen = pen;
+            CurrentPen.PropertyChanged += PenChanged;
+
+            RefreshQuickPens();
 
             PenChanged(this, null);
         }
@@ -57,11 +92,11 @@ namespace HeadsUpVideo.Desktop.CustomControls
         {
             var newInk = new InkDrawingAttributes()
             {
-                Color = _currentPen.Color,
+                Color = CurrentPen.Color,
                 FitToCurve = false,
-                Size = new Size(_currentPen.Size, _currentPen.Size),
+                Size = new Size(CurrentPen.Size, CurrentPen.Size),
                 IgnorePressure = false,
-                DrawAsHighlighter = _currentPen.IsHighlighter
+                DrawAsHighlighter = CurrentPen.IsHighlighter
             };
 
             _inkCanvas.InkPresenter.UpdateDefaultDrawingAttributes(newInk);
@@ -103,7 +138,7 @@ namespace HeadsUpVideo.Desktop.CustomControls
                 if (includePoint % includeInterval != 0) // make sure we don't chop off the end of the line!
                     points.Add(lastPoint);
 
-                if (!_currentPen.IsFreehand)
+                if (!CurrentPen.IsFreehand)
                     points = new List<Point> { points[0], points[points.Count - 1] };
 
                 // Get Bezier Spline Control Points.
@@ -136,30 +171,30 @@ namespace HeadsUpVideo.Desktop.CustomControls
 
                 var path = new Path()
                 {
-                    Stroke = new SolidColorBrush(_currentPen.Color),
-                    Opacity = _currentPen.IsHighlighter ? .5 : 1,
-                    StrokeThickness = _currentPen.Size,
+                    Stroke = new SolidColorBrush(CurrentPen.Color),
+                    Opacity = CurrentPen.IsHighlighter ? .5 : 1,
+                    StrokeThickness = CurrentPen.Size,
                     StrokeEndLineCap = PenLineCap.Triangle,
                     Data = geometry
                 };
 
 
-                if (_currentPen.EnableArrow)
+                if (CurrentPen.EnableArrow)
                 {
                     var arrowheadPath = new Polyline()
                     {
-                        Fill = new SolidColorBrush(_currentPen.Color),
-                        Opacity = _currentPen.IsHighlighter ? .5 : 1
+                        Fill = new SolidColorBrush(CurrentPen.Color),
+                        Opacity = CurrentPen.IsHighlighter ? .5 : 1
                     };
 
-                    foreach (var p in LineHelpers.DrawArrow(bearingPoint, lastPoint, _currentPen.Size * 1.3))
+                    foreach (var p in LineHelpers.DrawArrow(bearingPoint, lastPoint, CurrentPen.Size * 1.3))
                         arrowheadPath.Points.Add(p);
 
                     _polylines.Add(arrowheadPath);
                 }
 
 
-                if (_currentPen.LineStyle == PenViewModel.LineType.Dashed)
+                if (CurrentPen.LineStyle == PenViewModel.LineType.Dashed)
                     path.StrokeDashArray = new DoubleCollection() { 5, 2 };
 
                 _lines.Add(path);
@@ -228,8 +263,122 @@ namespace HeadsUpVideo.Desktop.CustomControls
 
         public void SetPen(PenViewModel currentPen)
         {
-            _currentPen = currentPen;
+            CurrentPen = currentPen;
             PenChanged(this, null);
         }
+
+        private void LoadQuickPen(PenViewModel obj)
+        {
+            CurrentPen = obj;
+            SetPen(CurrentPen);
+        }
+
+        private void ClearQuickPens()
+        {
+            LocalIO.SaveQuickPens();
+            RefreshQuickPens();
+        }
+
+        private void SaveQuickPen()
+        {
+            QuickPens.Add(CurrentPen);
+
+            var tempList = new List<PenModel>();
+
+            foreach (var pen in QuickPens)
+                tempList.Add(new PenModel()
+                {
+                    Color = pen.Color,
+                    Size = pen.Size,
+                    EnableArrow = pen.EnableArrow,
+                    IsFreehand = pen.IsFreehand,
+                    IsHighlighter = pen.IsHighlighter,
+                    LineStyle = pen.LineStyle
+                });
+
+            LocalIO.SaveQuickPens(QuickPens);
+        }
+
+        private void QuickPens_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            QuickPenButtons.Children.Clear();
+
+            foreach (PenViewModel pen in QuickPens)
+            {
+                QuickPenButtons.Children.Add(new PenButton(pen)
+                {
+                    Command = LoadQuickPenCmd,
+                    CommandParameter = pen
+                });
+            }
+        }
+
+        public void SetLineStyle(string style)
+        {
+            switch (style)
+            {
+                case "Solid":
+                    CurrentPen.LineStyle = PenModel.LineType.Solid;
+                    break;
+                case "Dash":
+                    CurrentPen.LineStyle = PenModel.LineType.Dashed;
+                    break;
+
+                case "Blue":
+                    CurrentPen.Color = Colors.Blue;
+                    break;
+                case "Red":
+                    CurrentPen.Color = Colors.Red;
+                    break;
+                case "Yellow":
+                    CurrentPen.Color = Colors.Yellow;
+                    break;
+                case "Green":
+                    CurrentPen.Color = Colors.Green;
+                    break;
+                case "Black":
+                    CurrentPen.Color = Colors.Black;
+                    break;
+
+                case "Highlight":
+                    CurrentPen.IsHighlighter = !CurrentPen.IsHighlighter;
+                    break;
+
+
+                case "Small":
+                    CurrentPen.Size = 5;
+                    break;
+                case "Medium":
+                    CurrentPen.Size = 10;
+                    break;
+                case "Large":
+                    CurrentPen.Size = 20;
+                    break;
+
+                case "Arrow":
+                    CurrentPen.EnableArrow = !CurrentPen.EnableArrow;
+                    break;
+            }
+        }
+
+        private void RefreshQuickPens()
+        {
+            QuickPens.Clear();
+
+            foreach (var pen in LocalIO.LoadQuickPens())
+            {
+                QuickPens.Add(new PenViewModel()
+                {
+                    Color = pen.Color,
+                    EnableArrow = pen.EnableArrow,
+                    IsFreehand = pen.IsFreehand,
+                    IsHighlighter = pen.IsHighlighter,
+                    LineStyle = pen.LineStyle,
+                    Size = pen.Size
+                });
+            }
+        }
+
+        
     }
 }

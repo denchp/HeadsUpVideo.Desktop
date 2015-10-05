@@ -8,44 +8,47 @@ using Windows.UI.Xaml.Media;
 using HeadsUpVideo.Desktop.ViewModels;
 using HeadsUpVideo.Desktop.CustomControls;
 using System.Linq;
+using Windows.UI.Xaml.Navigation;
+using HeadsUpVideo.Desktop.Models;
 
 namespace HeadsUpVideo.Desktop.Pages
 {
     public sealed partial class VideoPage : Page
     {
-        private VideoPageViewModel viewModel = new VideoPageViewModel();
+        private VideoPageViewModel viewModel;
         private Thumb sliderThumb;
         private AppBarButton sliderButton;
 
         public VideoPage()
         {
-            this.DataContext = viewModel;
             this.InitializeComponent();
-
-            viewModel.QuickPens.CollectionChanged += QuickPens_CollectionChanged;
-
-            inkCanvas.Initialize(viewModel.CurrentPen);
-            viewModel.Initialize(inkCanvas);
-            
             Initialize();
+        }
+
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            var file = e.Parameter as FileViewModel;
+
+            if (file != null && file.Stream != null)
+                VideoPlayer.SetSource(file.Stream, file.ContentType);
+
+            base.OnNavigatedTo(e);
         }
 
         private void Initialize()
         {
             this.Loaded += VideoPage_Loaded;
-            
-            viewModel.TogglePlayPauseEvent += _viewModel_TogglePlayPause;
-            viewModel.FileOpened += _viewModel_FileOpened;
-            
+
+            viewModel = new VideoPageViewModel();
+
+            viewModel.Initialize(inkCanvas);
+            viewModel.TogglePlayPauseEvent += TogglePlayPause;
             Scrubber.ValueChanged += Scrubber_ValueChanged;
+
+            this.DataContext = viewModel;
         }
 
-        private void _viewModel_FileOpened(object sender, EventArgs e)
-        {
-            VideoPlayer.SetSource(viewModel.CurrentFile.Stream, viewModel.CurrentFile.ContentType);
-        }
-
-        private void _viewModel_TogglePlayPause(object sender, EventArgs e)
+        private void TogglePlayPause(object sender, EventArgs e)
         {
             switch (VideoPlayer.CurrentState)
             {
@@ -60,20 +63,6 @@ namespace HeadsUpVideo.Desktop.Pages
                     sliderButton.Icon = new SymbolIcon(Symbol.Pause);
                     VideoPlayer.Play();
                     break;
-            }
-        }
-
-        private void QuickPens_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            QuickPens.Children.Clear();
-            
-            foreach (PenViewModel pen in viewModel.QuickPens)
-            {
-                QuickPens.Children.Add(new PenButton(pen)
-                {
-                    Command = viewModel.LoadQuickPenCmd,
-                    CommandParameter = pen
-                });
             }
         }
 

@@ -1,58 +1,32 @@
 ﻿using HeadsUpVideo.Desktop.Base;
-using HeadsUpVideo.Desktop.Commands;
-using HeadsUpVideo.Desktop.Pages;
 using System;
+using System.Collections.ObjectModel;
 
 namespace HeadsUpVideo.Desktop.ViewModels
 {
     public class MasterPageViewModel : NotifyPropertyChangedBase
     {
         public event EventHandler FileOpened;
-        public event EventHandler<System.Type> NavigateTo;
+        public event EventHandler RecentFilesUpdated;
 
-        public OpenFileCommand OpenFileCmd { get; set; }
-        public OpenRecentFileCommand OpenRecentFileCmd { get; set; }
+        public Command OpenFileCmd { get; set; }
+        
+        public Command ClearRecentFilesCmd { get; set; }
+        public Command<FileViewModel> OpenRecentFileCmd { get; set; }
 
-        private FileViewModel currentFile;
-        public FileViewModel CurrentFile
-        {
-            get { return currentFile; }
-            set { currentFile = value; TriggerPropertyChange("CurrentFile"); }
-        }
+        public FileViewModel CurrentFile { get; set; }
+        public ObservableCollection<FileViewModel> RecentFiles { get; set; }
 
         public MasterPageViewModel()
         {
-
-            OpenFileCmd = new OpenFileCommand() { CanExecuteFunc = obj => true, ExecuteFunc = OpenFile };
-            OpenRecentFileCmd = new OpenRecentFileCommand() { CanExecuteFunc = obj => true, ExecuteFunc = OpenRecentFile };
+            OpenFileCmd = NavigationService.OpenNewFileCmd;
+            ClearRecentFilesCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = ClearRecentFiles };
+            OpenRecentFileCmd = NavigationService.OpenFileViewModelCmd;
         }
 
         public void Initialize()
         {
-            if (NavigateTo != null)
-                NavigateTo(this, typeof(WelcomePage));
-        }
-
-        private async void OpenFile()
-        {
-            var fileModel = await LocalIO.SelectAndOpenFile();
-
-            if (fileModel == null)
-                return;
-
-            CurrentFile = new FileViewModel()
-            {
-                ContentType = fileModel.ContentType,
-                Name = fileModel.Name,
-                Path = fileModel.Path,
-                Stream = fileModel.Stream
-            };
-
-            if (FileOpened != null)
-                FileOpened(this, new EventArgs());
-
-            if (NavigateTo != null)
-                NavigateTo(this, typeof(VideoPage));
+            LoadRecentFiles();
         }
 
         private async void OpenRecentFile(FileViewModel recentFile)
@@ -65,12 +39,33 @@ namespace HeadsUpVideo.Desktop.ViewModels
                 Name = file.Name,
                 Stream = file.Stream
             };
+        }
 
-            if (FileOpened != null)
-                FileOpened(this, new EventArgs());
+        private void LoadRecentFiles()
+        {
+            RecentFiles = new ObservableCollection<FileViewModel>();
 
-            if (NavigateTo != null)
-                NavigateTo(this, typeof(VideoPage));
+            foreach (var file in LocalIO.LoadRecentFileList())
+            {
+                RecentFiles.Add(new FileViewModel()
+                {
+                    ContentType = file.ContentType,
+                    Name = file.Name,
+                    Path = file.Path
+                });
+            }
+        }
+
+        private void ClearRecentFiles()
+        {
+            LocalIO.ClearRecentFiles();
+            LoadRecentFiles();
+        }
+
+        private void RecentFiles_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (RecentFilesUpdated != null)
+                RecentFilesUpdated(this, new EventArgs());
         }
     }
 }

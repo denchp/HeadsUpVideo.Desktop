@@ -1,4 +1,5 @@
-﻿using HeadsUpVideo.Desktop.Pages;
+﻿using HeadsUpVideo.Desktop.Base;
+using HeadsUpVideo.Desktop.Pages;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,6 +12,7 @@ using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Storage;
+using Windows.Storage.Streams;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -18,6 +20,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using System.Windows.Input;
 
 namespace HeadsUpVideo.Desktop
 {
@@ -34,13 +37,18 @@ namespace HeadsUpVideo.Desktop
         Frame rootFrame;
         private StorageFile _errorFile;
         public StorageFile ErrorFile { get { return _errorFile; } set { _errorFile = value; } }
-        
+
         public App()
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
             CreateErrorFile();
             this.UnhandledException += App_UnhandledException;
+        }
+        
+        private void OpenFileStream(object obj)
+        {
+            throw new NotImplementedException();
         }
 
         private async void CreateErrorFile()

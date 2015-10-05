@@ -9,7 +9,7 @@
     xmlns:cc="using:HeadsUpVideo.Desktop.CustomControls">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <AppBar x:Name="TopBar" >
+        <AppBar x:Name="TopBar" Background="#44FFFFFF">
             <StackPanel x:Name="pnlMain" Height="Auto" VerticalAlignment="top"  HorizontalAlignment="Left" Orientation="Horizontal">
                 <AppBarButton x:Name="btnOpen" HorizontalAlignment="Center" Icon="OpenFile" VerticalAlignment="Top" Label="Open File" Command="{Binding OpenFileCmd}" />
                 <AppBarButton x:Name="BtnRecentFiles" Icon="Bookmarks" Label="Recent" VerticalAlignment="Top"/>
@@ -19,31 +19,5 @@
             </StackPanel>
         </AppBar>
         <Frame x:Name="frameBody"/>
-        <AppBar x:Name="BottomBar" VerticalAlignment="Bottom">
-            <StackPanel x:Name="pnlCommands" Height="Auto" VerticalAlignment="Top" Orientation="Horizontal">
-                <StackPanel x:Name="pnlMoreOptions">
-                    <StackPanel x:Name="pnlLines" Orientation="Horizontal" Margin="0,10,0,0" HorizontalAlignment="Right">
-                        <cc:ToggleAppBarButton IsSelected="{Binding CurrentPen.IsStraight}" Icon="Switch" Label="Straight" Command="{Binding SetLineStyleCmd}" CommandParameter="Straight"/>
-                        <cc:ToggleAppBarButton IsSelected="{Binding CurrentPen.IsFreehand}" Icon="Shuffle" Label="Free Hand" Command="{Binding SetLineStyleCmd}" CommandParameter="Freehand"/>
-                        <cc:ToggleAppBarButton IsSelected="{Binding CurrentPen.EnableArrow}" Icon="Go" Label="Arrow" Command="{Binding SetLineStyleCmd}" CommandParameter="Arrow"/>
-                        <cc:ToggleAppBarButton IsSelected="{Binding CurrentPen.IsSolid}" Command="{Binding SetLineStyleCmd}" CommandParameter="Solid" Label="Solid Line"/>
-                        <cc:ToggleAppBarButton IsSelected="{Binding CurrentPen.IsDashed}" Command="{Binding SetLineStyleCmd}" CommandParameter="Dash" Label="Dashed Line"/>
-                        <AppBarSeparator/>
-                        <cc:ToggleAppBarButton Width="25" Margin="5,0,5,0" Background="Red" Command="{Binding SetLineStyleCmd}" CommandParameter="Red"/>
-                        <cc:ToggleAppBarButton Width="25" Margin="5,0,5,0" Background="Yellow" Command="{Binding SetLineStyleCmd}" CommandParameter="Yellow"/>
-                        <cc:ToggleAppBarButton Width="25" Margin="5,0,5,0" Background="Blue" Command="{Binding SetLineStyleCmd}" CommandParameter="Blue"/>
-                        <cc:ToggleAppBarButton Width="25" Margin="5,0,5,0" Background="Green" Command="{Binding SetLineStyleCmd}" CommandParameter="Green"/>
-                        <cc:ToggleAppBarButton Width="25" Margin="5,0,5,0" Background="Black" Command="{Binding SetLineStyleCmd}" CommandParameter="Black"/>
-                        <AppBarSeparator/>
-                        <cc:ToggleAppBarButton x:Name="btnPen" Icon="Highlight" Label="Highlighter" Command="{Binding SetLineStyleCmd}" CommandParameter="Highlight"/>
-                        <cc:ToggleAppBarButton x:Name="btnSmall" Icon="FontDecrease" Label="Small" Command="{Binding SetLineStyleCmd}" CommandParameter="Small"/>
-                        <cc:ToggleAppBarButton x:Name="btnMed" Icon="FontSize" Label="Medium" Command="{Binding SetLineStyleCmd}" CommandParameter="Medium"/>
-                        <cc:ToggleAppBarButton x:Name="btnLarg" Icon="FontIncrease" Label="Large" Command="{Binding SetLineStyleCmd}" CommandParameter="Large"/>
-                        <AppBarButton x:Name="btnCurrentToQuick" Icon="SaveLocal" Label="Save Quick Pen" Command="{Binding SaveQuickPenCmd}"/>
-                        <AppBarButton x:Name="btnClearQuickPens" Icon="Delete" Label="Delete Quick Pens" Command="{Binding ClearQuickPensCmd}"/>
-                    </StackPanel>
-                </StackPanel>
-            </StackPanel>
-        </AppBar>
     </Grid>
 </Page>

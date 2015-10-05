@@ -5,11 +5,10 @@ namespace HeadsUpVideo.Desktop.Pages
 {
     public sealed partial class MasterPage : Page
     {
-        public MasterPageViewModel viewModel = new MasterPageViewModel();
+        public MasterPageViewModel viewModel;
 
         public MasterPage()
         {
-            this.DataContext = viewModel;
             this.InitializeComponent();
             
             Initialize();
@@ -17,18 +16,17 @@ namespace HeadsUpVideo.Desktop.Pages
 
         private void Initialize()
         {
-            this.Loaded += MasterPage_Loaded;
-            viewModel.NavigateTo += ViewModel_NavigateTo;
-        }
+            viewModel = new MasterPageViewModel();
+            viewModel.Initialize();
 
-        private void ViewModel_NavigateTo(object sender, System.Type e)
-        {
-            frameBody.Navigate(e);
+            this.DataContext = viewModel;
+            this.Loaded += MasterPage_Loaded;
         }
 
         private void MasterPage_Loaded(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            viewModel.Initialize();
+            frameBody.Navigate(typeof(WelcomePage));
+            NavigationService.Initialize(frameBody);
         }
     }
 }

@@ -64,7 +64,7 @@ namespace HeadsUpVideo.Desktop
                 await dialog.ShowAsync();
             }
         }
-
+        
         internal static async Task<FileModel> OpenFile(string path, bool addToRecentList)
         {
             var file = await StorageFile.GetFileFromPathAsync(path);

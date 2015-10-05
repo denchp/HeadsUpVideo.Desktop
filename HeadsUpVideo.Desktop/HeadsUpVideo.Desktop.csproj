@@ -95,18 +95,8 @@
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
     <Compile Include="Base\BaseCommand.cs" />
-    <Compile Include="Base\EmptyCommand.cs" />
+    <Compile Include="Base\Command.cs" />
     <Compile Include="Base\StringCommand.cs" />
-    <Compile Include="Commands\ClearLinesCommand.cs" />
-    <Compile Include="Commands\ClearQuickPensCommand.cs" />
-    <Compile Include="Commands\ClearRecentFilesCommand.cs" />
-    <Compile Include="Commands\CreateSavePointCommand.cs" />
-    <Compile Include="Commands\ImageLoadCommand.cs" />
-    <Compile Include="Commands\LoadQuickPenCommand.cs" />
-    <Compile Include="Commands\OpenRecentFileCommand.cs" />
-    <Compile Include="Commands\PlayPauseCommand.cs" />
-    <Compile Include="Commands\SaveQuickPenCommand.cs" />
-    <Compile Include="Commands\SetLineStyleCommand.cs" />
     <Compile Include="CustomControls\CustomInkCanvas.xaml.cs">
       <DependentUpon>CustomInkCanvas.xaml</DependentUpon>
     </Compile>
@@ -115,6 +105,7 @@
     </Compile>
     <Compile Include="CustomControls\PenButton.cs" />
     <Compile Include="Interfaces\ICustomCanvas.cs" />
+    <Compile Include="ViewModels\NavigationService.cs" />
     <Compile Include="Models\OptionsModel.cs" />
     <Compile Include="Pages\DiagramPage.Xaml.cs">
       <DependentUpon>DiagramPage.xaml</DependentUpon>
@@ -127,7 +118,6 @@
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Compile Include="Commands\OpenFileCommand.cs" />
     <Compile Include="CustomControls\ToggleAppBarButton.cs" />
     <Compile Include="LocalIO.cs" />
     <None Include="project.json" />
