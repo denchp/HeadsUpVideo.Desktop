@@ -31,7 +31,7 @@ namespace HeadsUpVideo.Desktop.CustomControls
         Canvas _canvas;
 
         public Command ClearQuickPensCmd { get; set; }
-        public Command SaveQuickPenCmd { get; set; }
+        public Command<PenViewModel> AddQuickPenCmd { get; set; }
         public Command ClearLinesCmd { get; set; }
         public Command CreateSavePointCmd { get; set; }
         public Command<string> SetLineStyleCmd { get; set; }
@@ -65,8 +65,8 @@ namespace HeadsUpVideo.Desktop.CustomControls
 
             QuickPens = new ObservableCollection<PenViewModel>();
             CreateSavePointCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = CreateSavePoint };
-            ClearQuickPensCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = ClearQuickPens };
-            SaveQuickPenCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = SaveQuickPen };
+            ClearQuickPensCmd = LocalIO.ClearQuickPensCmd;
+            AddQuickPenCmd = LocalIO.AddQuickPenCmd;
             LoadQuickPenCmd = new Command<PenViewModel>() { CanExecuteFunc = obj => true, ExecuteFunc = LoadQuickPen };
             ClearLinesCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = Clear };
             SetLineStyleCmd = new Command<string>() { CanExecuteFunc = obj => true, ExecuteFunc = SetLineStyle };
@@ -273,32 +273,6 @@ namespace HeadsUpVideo.Desktop.CustomControls
             SetPen(CurrentPen);
         }
 
-        private void ClearQuickPens()
-        {
-            LocalIO.SaveQuickPens();
-            RefreshQuickPens();
-        }
-
-        private void SaveQuickPen()
-        {
-            QuickPens.Add(CurrentPen);
-
-            var tempList = new List<PenModel>();
-
-            foreach (var pen in QuickPens)
-                tempList.Add(new PenModel()
-                {
-                    Color = pen.Color,
-                    Size = pen.Size,
-                    EnableArrow = pen.EnableArrow,
-                    IsFreehand = pen.IsFreehand,
-                    IsHighlighter = pen.IsHighlighter,
-                    LineStyle = pen.LineStyle
-                });
-
-            LocalIO.SaveQuickPens(QuickPens);
-        }
-
         private void QuickPens_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             QuickPenButtons.Children.Clear();
@@ -365,20 +339,10 @@ namespace HeadsUpVideo.Desktop.CustomControls
         {
             QuickPens.Clear();
 
-            foreach (var pen in LocalIO.LoadQuickPens())
-            {
-                QuickPens.Add(new PenViewModel()
-                {
-                    Color = pen.Color,
-                    EnableArrow = pen.EnableArrow,
-                    IsFreehand = pen.IsFreehand,
-                    IsHighlighter = pen.IsHighlighter,
-                    LineStyle = pen.LineStyle,
-                    Size = pen.Size
-                });
-            }
+            foreach (var pen in LocalIO.QuickPens)
+                QuickPens.Add(pen);
         }
 
-        
+
     }
 }

@@ -105,7 +105,6 @@
     </Compile>
     <Compile Include="CustomControls\PenButton.cs" />
     <Compile Include="Interfaces\ICustomCanvas.cs" />
-    <Compile Include="ViewModels\NavigationService.cs" />
     <Compile Include="Models\OptionsModel.cs" />
     <Compile Include="Pages\DiagramPage.Xaml.cs">
       <DependentUpon>DiagramPage.xaml</DependentUpon>
@@ -113,6 +112,7 @@
     <Compile Include="ViewModels\DiagramPageViewModel.cs" />
     <Compile Include="ViewModels\FileViewModel.cs" />
     <Compile Include="ViewModels\MasterPageViewModel.cs" />
+    <Compile Include="ViewModels\NavigationModel.cs" />
     <Compile Include="ViewModels\PenViewModel.cs" />
     <Compile Include="ViewModels\WelcomePageViewModel.cs" />
     <Content Include="ApplicationInsights.config">

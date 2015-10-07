@@ -12,14 +12,52 @@ using Windows.Storage.Streams;
 using Windows.Storage.Pickers;
 using Windows.ApplicationModel;
 using Windows.Storage.AccessCache;
+using System.Collections.ObjectModel;
+using HeadsUpVideo.Desktop.ViewModels;
+using HeadsUpVideo.Desktop.Base;
 
 namespace HeadsUpVideo.Desktop
 {
     public static class LocalIO
     {
         public static EventHandler RecentFilesChanged;
+        public static EventHandler QuickPensChanges;
 
-        public static List<PenModel> LoadQuickPens()
+        public static ObservableCollection<FileViewModel> RecentFiles { get; set; }
+        public static ObservableCollection<PenViewModel> QuickPens { get; set; }
+
+        static LocalIO()
+        {
+            QuickPens = new ObservableCollection<PenViewModel>();
+            RecentFiles = new ObservableCollection<FileViewModel>();
+
+            ClearRecentFilesCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = ClearRecentFiles };
+
+            LoadQuickPensCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = LoadQuickPens };
+            SaveQuickPensCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = SaveQuickPens };
+            ClearQuickPensCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = ClearQuickPens };
+            AddQuickPenCmd = new Command<PenViewModel>() { CanExecuteFunc = obj => true, ExecuteFunc = AddQuickPen };
+        }
+
+        private static void AddQuickPen(PenViewModel newPen)
+        {
+            QuickPens.Add(newPen);
+            SaveQuickPens();
+        }
+
+        private static void ClearQuickPens()
+        {
+            QuickPens.Clear();
+            SaveQuickPens();
+        }
+
+        public static Command ClearRecentFilesCmd { get; set; }
+        public static Command LoadQuickPensCmd { get; set; }
+        public static Command SaveQuickPensCmd { get; set; }
+        public static Command ClearQuickPensCmd { get; set; }
+        public static Command<PenViewModel> AddQuickPenCmd { get; set; }
+
+        private static void LoadQuickPens()
         {
             var folder = ApplicationData.Current.LocalFolder;
             var serializer = new XmlSerializer(typeof(List<PenModel>));
@@ -31,30 +69,30 @@ namespace HeadsUpVideo.Desktop
                     quickPens = serializer.Deserialize(fileStream) as List<PenModel>;
                 }
 
-                if (quickPens == null)
-                    return new List<PenModel>();
+                QuickPens.Clear();
 
-                return quickPens;
+                foreach (var pen in quickPens)
+                    QuickPens.Add(new PenViewModel(pen));
             }
             catch
             {
-                return new List<PenModel>();
+                QuickPens.Clear();
             }
         }
 
-        internal static async void SaveQuickPens(IEnumerable<PenModel> currentPens = null)
+        private static async void SaveQuickPens()
         {
-            if (currentPens == null)
-                currentPens = new List<PenModel>();
-
             var folder = ApplicationData.Current.LocalFolder;
+
+            IEnumerable<PenModel> quickPens = QuickPens.Cast<PenModel>();            
+
             try
             {
                 var serializer = new XmlSerializer(typeof(List<PenModel>));
 
                 using (var fileStream = new FileStream(folder.Path + "\\quickPens.xml", FileMode.Create))
                 {
-                    serializer.Serialize(fileStream, currentPens);
+                    serializer.Serialize(fileStream, quickPens);
                 }
             }
             catch (Exception ex)
@@ -67,46 +105,8 @@ namespace HeadsUpVideo.Desktop
             }
         }
         
-        internal static async Task<FileModel> OpenFile(string path, bool addToRecentList)
-        {
-            var file = await StorageFile.GetFileFromPathAsync(path);
-
-            return await OpenFile(file, addToRecentList);
-        }
-
-        internal static async Task<FileModel> OpenFile(StorageFile file, bool addToRecentList)
-        {
-            try
-            {
-                FileModel fileModel = new FileModel();
-                fileModel.ContentType = file.ContentType;
-
-                if (addToRecentList)
-                {
-                    var fileList = LoadRecentFileList();
-                    if (!fileList.Any(x => x.Path == file.Path))
-                    {
-                        fileList.Add(new FileModel() { Path = file.Path, Name = file.Name });
-                        SaveRecentFileList(fileList);
-                        StorageApplicationPermissions.FutureAccessList.Add(file);
-                    }
-                }
-
-                var openResponse = await file.OpenAsync(Windows.Storage.FileAccessMode.Read);
-
-                fileModel.Stream = openResponse;
-
-                return fileModel;
-            }
-            catch (Exception ex)
-            {
-                var dialog = new MessageDialog("There was an error opening the specified file.\r\n\r\n" + ex.Message, "Error opening file");
-                await dialog.ShowAsync();
-                return null;
-            }
-        }
-
-        internal static List<FileModel> LoadRecentFileList()
+       
+        private static void LoadRecentFileList()
         {
             var folder = ApplicationData.Current.LocalFolder;
             var serializer = new XmlSerializer(typeof(List<FileModel>));
@@ -118,32 +118,35 @@ namespace HeadsUpVideo.Desktop
                     recentFiles = serializer.Deserialize(fileStream) as List<FileModel>;
                 }
 
-                if (recentFiles == null)
-                    return new List<FileModel>();
+                RecentFiles.Clear();
 
-                return recentFiles;
+                foreach (var file in recentFiles)
+                    RecentFiles.Add(new FileViewModel(file));
             }
             catch
             {
-                return new List<FileModel>();
+                RecentFiles = new ObservableCollection<FileViewModel>();
             }
         }
 
-        internal static void ClearRecentFiles()
+        private static void ClearRecentFiles()
         {
-            SaveRecentFileList(new List<FileModel>());
+            RecentFiles.Clear();
+            SaveRecentFileList();
         }
 
-        private static async void SaveRecentFileList(List<FileModel> files)
+        private static async void SaveRecentFileList()
         {
             var folder = ApplicationData.Current.LocalFolder;
+            IEnumerable<FileModel> recentFiles = RecentFiles.Cast<FileModel>();
+
             try
             {
                 var serializer = new XmlSerializer(typeof(List<FileModel>));
 
                 using (var fileStream = new FileStream(folder.Path + "\\recent.xml", FileMode.Create))
                 {
-                    serializer.Serialize(fileStream, files);
+                    serializer.Serialize(fileStream, recentFiles);
                 }
 
                 if (RecentFilesChanged != null)
@@ -156,7 +159,7 @@ namespace HeadsUpVideo.Desktop
             }
         }
 
-        internal static async Task<FileModel> SelectAndOpenFile()
+        public static async Task<FileModel> SelectAndOpenFile()
         {
             FileOpenPicker openPicker = new FileOpenPicker();
 
@@ -175,5 +178,44 @@ namespace HeadsUpVideo.Desktop
 
             return result;
         }
+
+        public static async Task<FileModel> OpenFile(string path, bool addToRecentList)
+        {
+            var file = await StorageFile.GetFileFromPathAsync(path);
+
+            return await OpenFile(file, addToRecentList);
+        }
+
+        public static async Task<FileModel> OpenFile(StorageFile file, bool addToRecentList)
+        {
+            try
+            {
+                FileModel fileModel = new FileModel();
+                fileModel.ContentType = file.ContentType;
+
+                if (addToRecentList)
+                {
+                    if (!RecentFiles.Any(x => x.Path == file.Path))
+                    {
+                        RecentFiles.Add(new FileViewModel() { Path = file.Path, Name = file.Name });
+                        SaveRecentFileList();
+                        StorageApplicationPermissions.FutureAccessList.Add(file);
+                    }
+                }
+
+                var openResponse = await file.OpenAsync(Windows.Storage.FileAccessMode.Read);
+
+                fileModel.Stream = openResponse;
+
+                return fileModel;
+            }
+            catch (Exception ex)
+            {
+                var dialog = new MessageDialog("There was an error opening the specified file.\r\n\r\n" + ex.Message, "Error opening file");
+                await dialog.ShowAsync();
+                return null;
+            }
+        }
+
     }
 }
