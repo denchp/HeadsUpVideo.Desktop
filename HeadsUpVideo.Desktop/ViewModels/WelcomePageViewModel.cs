@@ -14,7 +14,7 @@ namespace HeadsUpVideo.Desktop.ViewModels
         public WelcomePageViewModel()
         {
             RecentFiles = new ObservableCollection<FileViewModel>();
-            OpenRecentFileCmd = NavigationService.OpenFileFromPathCmd;
+            OpenRecentFileCmd = NavigationModel.OpenFileFromPathCmd;
         }
 
         

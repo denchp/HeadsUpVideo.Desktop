@@ -19,9 +19,9 @@ namespace HeadsUpVideo.Desktop.ViewModels
 
         public MasterPageViewModel()
         {
-            OpenFileCmd = NavigationService.OpenNewFileCmd;
+            OpenFileCmd = NavigationModel.OpenNewFileCmd;
             ClearRecentFilesCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = ClearRecentFiles };
-            OpenRecentFileCmd = NavigationService.OpenFileViewModelCmd;
+            OpenRecentFileCmd = NavigationModel.OpenFileViewModelCmd;
         }
 
         public void Initialize()

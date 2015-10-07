@@ -25,8 +25,7 @@ namespace HeadsUpVideo.Desktop.Pages
 
         private void MasterPage_Loaded(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            frameBody.Navigate(typeof(WelcomePage));
-            NavigationService.Initialize(frameBody);
+            NavigationModel.Initialize(frameBody);
         }
     }
 }

@@ -17,6 +17,8 @@ namespace HeadsUpVideo.Desktop
 {
     public static class LocalIO
     {
+        public static EventHandler RecentFilesChanged;
+
         public static List<PenModel> LoadQuickPens()
         {
             var folder = ApplicationData.Current.LocalFolder;
@@ -143,6 +145,9 @@ namespace HeadsUpVideo.Desktop
                 {
                     serializer.Serialize(fileStream, files);
                 }
+
+                if (RecentFilesChanged != null)
+                    RecentFilesChanged(null, new EventArgs());
             }
             catch
             {

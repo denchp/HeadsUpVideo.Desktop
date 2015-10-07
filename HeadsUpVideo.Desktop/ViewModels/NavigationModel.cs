@@ -11,11 +11,11 @@ using Windows.UI.Xaml.Controls;
 
 namespace HeadsUpVideo.Desktop.ViewModels
 {
-    internal static class NavigationService
+    internal static class NavigationModel
     {
         private static Frame ContentFrame { get; set; }
 
-        static NavigationService()
+        static NavigationModel()
         {
             OpenFileViewModelCmd = new Command<FileViewModel>() { CanExecuteFunc = obj => true, ExecuteFunc = OpenFileStream };
             OpenNewFileCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = OpenFile };
@@ -26,6 +26,8 @@ namespace HeadsUpVideo.Desktop.ViewModels
         public static void Initialize(Frame contentFrame)
         {
             ContentFrame = contentFrame;
+
+            ContentFrame.Navigate(typeof(WelcomePage));
         }
 
         public static Command<FileViewModel> OpenFileViewModelCmd { get; set; }
@@ -66,7 +68,7 @@ namespace HeadsUpVideo.Desktop.ViewModels
                 Stream = file.Stream
             };
 
-            NavigationService.OpenFileViewModelCmd.Execute(newFile);
+            NavigationModel.OpenFileViewModelCmd.Execute(newFile);
         }
     }
 }
