@@ -1,4 +1,5 @@
 ﻿using HeadsUpVideo.Desktop.Base;
+using HeadsUpVideo.Desktop.Models;
 using System;
 using System.Collections.ObjectModel;
 
@@ -8,13 +9,15 @@ namespace HeadsUpVideo.Desktop.ViewModels
     {
         public event EventHandler FileOpened;
 
-        public  ObservableCollection<FileViewModel> RecentFiles { get; set; }
+        public  ObservableCollection<FileModel> RecentFiles { get; set; }
         public Command<string> OpenRecentFileCmd { get; set; }
+        public Command ClearRecentFilesCmd { get; set; }
 
         public WelcomePageViewModel()
         {
-            RecentFiles = new ObservableCollection<FileViewModel>();
+            RecentFiles = StorageIO.RecentFiles;
             OpenRecentFileCmd = NavigationModel.OpenFileFromPathCmd;
+            ClearRecentFilesCmd = StorageIO.ClearRecentFilesCmd;
         }
 
         

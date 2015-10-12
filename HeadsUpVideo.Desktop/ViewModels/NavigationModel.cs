@@ -1,12 +1,7 @@
-﻿using HeadsUpVideo.Desktop.Base;
+﻿using System;
+using HeadsUpVideo.Desktop.Base;
+using HeadsUpVideo.Desktop.Models;
 using HeadsUpVideo.Desktop.Pages;
-using HeadsUpVideo.Desktop.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Windows.Storage.Streams;
 using Windows.UI.Xaml.Controls;
 
 namespace HeadsUpVideo.Desktop.ViewModels
@@ -17,10 +12,11 @@ namespace HeadsUpVideo.Desktop.ViewModels
 
         static NavigationModel()
         {
-            OpenFileViewModelCmd = new Command<FileViewModel>() { CanExecuteFunc = obj => true, ExecuteFunc = OpenFileStream };
+            OpenFileModelCmd = new Command<FileModel>() { CanExecuteFunc = obj => true, ExecuteFunc = OpenFileStream };
             OpenNewFileCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = OpenFile };
             OpenFileFromPathCmd = new Command<string>() { CanExecuteFunc = obj => true, ExecuteFunc = OpenFileFromPath };
-            OpenFileViewModelCmd = new Command<FileViewModel>() { CanExecuteFunc = obj => true, ExecuteFunc = OpenFileStream };
+            OpenFileModelCmd = new Command<FileModel>() { CanExecuteFunc = obj => true, ExecuteFunc = OpenFileStream };
+            OpenDiagramImageCmd = new Command<string>() { CanExecuteFunc = obj => true, ExecuteFunc = OpenDiagramImage };
         }
 
         public static void Initialize(Frame contentFrame)
@@ -30,23 +26,24 @@ namespace HeadsUpVideo.Desktop.ViewModels
             ContentFrame.Navigate(typeof(WelcomePage));
         }
 
-        public static Command<FileViewModel> OpenFileViewModelCmd { get; set; }
-        public static Command<string> OpenFileFromPathCmd { get; internal set; }
+        public static Command<FileModel> OpenFileModelCmd { get; set; }
+        public static Command<string> OpenFileFromPathCmd { get; set; }
         public static Command OpenNewFileCmd { get; set; }
-        
-        private static void OpenFileStream(FileViewModel obj)
+        public static Command<string> OpenDiagramImageCmd { get; set; }
+
+        private static void OpenFileStream(FileModel obj)
         {
             ContentFrame.Navigate(typeof(VideoPage), obj);
         }
 
         private static async void OpenFile()
         {
-            var fileModel = await LocalIO.SelectAndOpenFile();
+            var fileModel = await StorageIO.SelectAndOpenFile();
 
             if (fileModel == null)
                 return;
 
-            var fileVM = new FileViewModel()
+            var fileVM = new FileModel()
             {
                 ContentType = fileModel.ContentType,
                 Name = fileModel.Name,
@@ -59,8 +56,8 @@ namespace HeadsUpVideo.Desktop.ViewModels
 
         private static async void OpenFileFromPath(string path)
         {
-            var file = await LocalIO.OpenFile(path, false);
-            var newFile = new FileViewModel()
+            var file = await StorageIO.OpenFile(path, false);
+            var newFile = new FileModel()
             {
                 ContentType = file.ContentType,
                 Path = file.Path,
@@ -68,7 +65,13 @@ namespace HeadsUpVideo.Desktop.ViewModels
                 Stream = file.Stream
             };
 
-            NavigationModel.OpenFileViewModelCmd.Execute(newFile);
+            NavigationModel.OpenFileModelCmd.Execute(newFile);
+        }
+
+
+        private static void OpenDiagramImage(string obj)
+        {
+            ContentFrame.Navigate(typeof(DiagramPage), obj);
         }
     }
 }

@@ -9,15 +9,15 @@
     xmlns:cc="using:HeadsUpVideo.Desktop.CustomControls">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <AppBar x:Name="TopBar" Background="#44FFFFFF">
+        <AppBar Canvas.ZIndex="9" x:Name="TopBar" Background="#44FFFFFF">
             <StackPanel x:Name="pnlMain" Height="Auto" VerticalAlignment="top"  HorizontalAlignment="Left" Orientation="Horizontal">
                 <AppBarButton x:Name="btnOpen" HorizontalAlignment="Center" Icon="OpenFile" VerticalAlignment="Top" Label="Open File" Command="{Binding OpenFileCmd}" />
                 <AppBarButton x:Name="BtnRecentFiles" Icon="Bookmarks" Label="Recent" VerticalAlignment="Top"/>
-                <AppBarButton x:Name="btnHalfIce" HorizontalAlignment="Center" Icon="BackToWindow" VerticalAlignment="Top" Label="Half Ice"/>
-                <AppBarButton x:Name="btnFullIce" HorizontalAlignment="Center" Icon="FullScreen" VerticalAlignment="Top" Label="Full Ice"/>
+                <AppBarButton x:Name="btnHalfIce" HorizontalAlignment="Center" Icon="BackToWindow" VerticalAlignment="Top" Label="Half Ice" Command="{Binding OpenDiagramCmd}" CommandParameter="Assets/FullSheetLong.png"/>
+                <AppBarButton x:Name="btnFullIce" HorizontalAlignment="Center" Icon="FullScreen" VerticalAlignment="Top" Label="Full Ice" Command="{Binding OpenDiagramCmd}" CommandParameter="Assets/FullSheetAngle.png"/>
                 <AppBarButton x:Name="btnErrorLog" Icon="Document" Visibility="Collapsed"/>
             </StackPanel>
         </AppBar>
-        <Frame x:Name="frameBody"/>
+        <Frame Canvas.ZIndex="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="frameBody"/>
     </Grid>
 </Page>

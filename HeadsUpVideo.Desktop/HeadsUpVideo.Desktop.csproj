@@ -100,9 +100,6 @@
     <Compile Include="CustomControls\CustomInkCanvas.xaml.cs">
       <DependentUpon>CustomInkCanvas.xaml</DependentUpon>
     </Compile>
-    <Compile Include="CustomControls\MyUserControl1.xaml.cs">
-      <DependentUpon>MyUserControl1.xaml</DependentUpon>
-    </Compile>
     <Compile Include="CustomControls\PenButton.cs" />
     <Compile Include="Interfaces\ICustomCanvas.cs" />
     <Compile Include="Models\OptionsModel.cs" />
@@ -110,23 +107,21 @@
       <DependentUpon>DiagramPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewModels\DiagramPageViewModel.cs" />
-    <Compile Include="ViewModels\FileViewModel.cs" />
     <Compile Include="ViewModels\MasterPageViewModel.cs" />
     <Compile Include="ViewModels\NavigationModel.cs" />
-    <Compile Include="ViewModels\PenViewModel.cs" />
     <Compile Include="ViewModels\WelcomePageViewModel.cs" />
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Compile Include="CustomControls\ToggleAppBarButton.cs" />
-    <Compile Include="LocalIO.cs" />
+    <Compile Include="StorageIO.cs" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="LineHelpers.cs" />
+    <Compile Include="CustomControls\LineHelpers.cs" />
     <Compile Include="Pages\VideoPage.xaml.cs">
       <DependentUpon>VideoPage.xaml</DependentUpon>
     </Compile>
@@ -170,10 +165,6 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Page Include="CustomControls\CustomInkCanvas.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="CustomControls\MyUserControl1.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

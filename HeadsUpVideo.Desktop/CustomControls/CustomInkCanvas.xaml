@@ -6,10 +6,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    xmlns:cc="using:HeadsUpVideo.Desktop.CustomControls"
-    >
-
-    <Grid>
+    xmlns:cc="using:HeadsUpVideo.Desktop.CustomControls">
+    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <Canvas x:Name="LineCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Canvas>
         <InkCanvas x:Name="InkCanvas"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></InkCanvas>
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Right" Background="#44FFFFFF" Orientation="Vertical">
@@ -38,7 +36,7 @@
                         <cc:ToggleAppBarButton x:Name="btnSmall" Icon="FontDecrease" Label="Small" Command="{Binding SetLineStyleCmd}" CommandParameter="Small"/>
                         <cc:ToggleAppBarButton x:Name="btnMed" Icon="FontSize" Label="Medium" Command="{Binding SetLineStyleCmd}" CommandParameter="Medium"/>
                         <cc:ToggleAppBarButton x:Name="btnLarg" Icon="FontIncrease" Label="Large" Command="{Binding SetLineStyleCmd}" CommandParameter="Large"/>
-                        <AppBarButton x:Name="btnCurrentToQuick" Icon="SaveLocal" Label="Save Quick Pen" Command="{Binding SaveQuickPenCmd}"/>
+                        <AppBarButton x:Name="btnCurrentToQuick" Icon="SaveLocal" Label="Save Quick Pen" Command="{Binding AddQuickPenCmd}"/>
                         <AppBarButton x:Name="btnClearQuickPens" Icon="Delete" Label="Delete Quick Pens" Command="{Binding ClearQuickPensCmd}"/>
                     </StackPanel>
                 </StackPanel>

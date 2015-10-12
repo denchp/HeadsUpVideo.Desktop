@@ -18,28 +18,27 @@ using HeadsUpVideo.Desktop.Base;
 
 namespace HeadsUpVideo.Desktop
 {
-    public static class LocalIO
+    public static class StorageIO
     {
-        public static EventHandler RecentFilesChanged;
-        public static EventHandler QuickPensChanges;
+        public static ObservableCollection<FileModel> RecentFiles { get; set; }
+        public static ObservableCollection<PenModel> QuickPens { get; set; }
 
-        public static ObservableCollection<FileViewModel> RecentFiles { get; set; }
-        public static ObservableCollection<PenViewModel> QuickPens { get; set; }
-
-        static LocalIO()
+        static StorageIO()
         {
-            QuickPens = new ObservableCollection<PenViewModel>();
-            RecentFiles = new ObservableCollection<FileViewModel>();
+            QuickPens = new ObservableCollection<PenModel>();
+            RecentFiles = new ObservableCollection<FileModel>();
 
             ClearRecentFilesCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = ClearRecentFiles };
 
             LoadQuickPensCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = LoadQuickPens };
             SaveQuickPensCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = SaveQuickPens };
             ClearQuickPensCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = ClearQuickPens };
-            AddQuickPenCmd = new Command<PenViewModel>() { CanExecuteFunc = obj => true, ExecuteFunc = AddQuickPen };
+            AddQuickPenCmd = new Command<PenModel>() { CanExecuteFunc = obj => true, ExecuteFunc = AddQuickPen };
+
+            LoadRecentFileList();
         }
 
-        private static void AddQuickPen(PenViewModel newPen)
+        private static void AddQuickPen(PenModel newPen)
         {
             QuickPens.Add(newPen);
             SaveQuickPens();
@@ -55,7 +54,7 @@ namespace HeadsUpVideo.Desktop
         public static Command LoadQuickPensCmd { get; set; }
         public static Command SaveQuickPensCmd { get; set; }
         public static Command ClearQuickPensCmd { get; set; }
-        public static Command<PenViewModel> AddQuickPenCmd { get; set; }
+        public static Command<PenModel> AddQuickPenCmd { get; set; }
 
         private static void LoadQuickPens()
         {
@@ -72,7 +71,7 @@ namespace HeadsUpVideo.Desktop
                 QuickPens.Clear();
 
                 foreach (var pen in quickPens)
-                    QuickPens.Add(new PenViewModel(pen));
+                    QuickPens.Add(pen);
             }
             catch
             {
@@ -84,15 +83,13 @@ namespace HeadsUpVideo.Desktop
         {
             var folder = ApplicationData.Current.LocalFolder;
 
-            IEnumerable<PenModel> quickPens = QuickPens.Cast<PenModel>();            
-
             try
             {
                 var serializer = new XmlSerializer(typeof(List<PenModel>));
 
                 using (var fileStream = new FileStream(folder.Path + "\\quickPens.xml", FileMode.Create))
                 {
-                    serializer.Serialize(fileStream, quickPens);
+                    serializer.Serialize(fileStream, QuickPens.ToList());
                 }
             }
             catch (Exception ex)
@@ -121,11 +118,11 @@ namespace HeadsUpVideo.Desktop
                 RecentFiles.Clear();
 
                 foreach (var file in recentFiles)
-                    RecentFiles.Add(new FileViewModel(file));
+                    RecentFiles.Add(file);
             }
             catch
             {
-                RecentFiles = new ObservableCollection<FileViewModel>();
+                RecentFiles = new ObservableCollection<FileModel>();
             }
         }
 
@@ -138,23 +135,19 @@ namespace HeadsUpVideo.Desktop
         private static async void SaveRecentFileList()
         {
             var folder = ApplicationData.Current.LocalFolder;
-            IEnumerable<FileModel> recentFiles = RecentFiles.Cast<FileModel>();
-
+          
             try
             {
                 var serializer = new XmlSerializer(typeof(List<FileModel>));
 
                 using (var fileStream = new FileStream(folder.Path + "\\recent.xml", FileMode.Create))
                 {
-                    serializer.Serialize(fileStream, recentFiles);
+                    serializer.Serialize(fileStream, RecentFiles.ToList());
                 }
-
-                if (RecentFilesChanged != null)
-                    RecentFilesChanged(null, new EventArgs());
             }
-            catch
+            catch (Exception ex)
             {
-                var dialog = new MessageDialog("Error saving recent files list.  If this problem continues please contact support.");
+                var dialog = new MessageDialog("Error saving recent files list.  If this problem continues please contact support.\r\n\r\n" + ex.Message);
                 await dialog.ShowAsync();
             }
         }
@@ -174,7 +167,7 @@ namespace HeadsUpVideo.Desktop
             if (openFileResponse == null)
                 return null;
 
-            var result = await LocalIO.OpenFile(openFileResponse, true);
+            var result = await StorageIO.OpenFile(openFileResponse, true);
 
             return result;
         }
@@ -197,7 +190,7 @@ namespace HeadsUpVideo.Desktop
                 {
                     if (!RecentFiles.Any(x => x.Path == file.Path))
                     {
-                        RecentFiles.Add(new FileViewModel() { Path = file.Path, Name = file.Name });
+                        RecentFiles.Add(new FileModel() { Path = file.Path, Name = file.Name });
                         SaveRecentFileList();
                         StorageApplicationPermissions.FutureAccessList.Add(file);
                     }

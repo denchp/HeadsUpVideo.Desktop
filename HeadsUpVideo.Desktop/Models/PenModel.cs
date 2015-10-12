@@ -48,7 +48,12 @@ namespace HeadsUpVideo.Desktop.Models
         public LineType LineStyle
         {
             get { return lineStyle; }
-            set { lineStyle = value; TriggerPropertyChange("LineStyle"); }
+            set { lineStyle = value;
+                TriggerPropertyChange("LineStyle");
+                TriggerPropertyChange("IsDouble");
+                TriggerPropertyChange("IsSolid");
+                TriggerPropertyChange("IsDashed");
+            }
         }
         [DataMember]
         public bool IsFreehand
@@ -59,7 +64,15 @@ namespace HeadsUpVideo.Desktop.Models
                 TriggerPropertyChange("IsStraight");
             }
         }
+
+        [IgnoreDataMember]
         public bool IsStraight { get { return !IsFreehand; } }
+        [IgnoreDataMember]
+        public bool IsSolid { get { return lineStyle == LineType.Solid; } }
+        [IgnoreDataMember]
+        public bool IsDashed { get { return lineStyle == LineType.Dashed; } }
+        [IgnoreDataMember]
+        public bool IsDouble { get { return lineStyle == LineType.Double; } }
 
     }
 }

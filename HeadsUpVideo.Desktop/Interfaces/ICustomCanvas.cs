@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using HeadsUpVideo.Desktop.ViewModels;
+﻿using HeadsUpVideo.Desktop.Models;
 
 namespace HeadsUpVideo.Desktop.Interfaces
 {
@@ -12,6 +7,7 @@ namespace HeadsUpVideo.Desktop.Interfaces
         void ClearLines(bool restoreSave = false, bool restoreTemplate = false);
         void CreateSavePoint();
         void Clear();
-        void SetPen(PenViewModel currentPen);
+        void SetPen(PenModel currentPen);
+        void Initialize();
     }
 }

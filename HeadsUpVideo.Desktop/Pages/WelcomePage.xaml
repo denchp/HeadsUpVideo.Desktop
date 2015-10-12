@@ -11,7 +11,7 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
-        <StackPanel BorderBrush="Gray" x:Name="stkRecentFiles" BorderThickness="1,1,1,1" Grid.Column="0">
+        <StackPanel BorderBrush="Gray" x:Name="stkRecentFiles" BorderThickness="1,1,1,1" Padding="5,5,5,5" Grid.Column="0">
             <TextBlock Text="Recent Files:"/>
             <Button Content="Clear Recent Files" Command="{Binding ClearRecentFilesCmd}"/>
             <StackPanel x:Name="lstRecentFiles">

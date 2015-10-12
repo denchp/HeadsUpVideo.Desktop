@@ -1,4 +1,5 @@
 ﻿using HeadsUpVideo.Desktop.Base;
+using HeadsUpVideo.Desktop.Models;
 using System;
 using System.Collections.ObjectModel;
 
@@ -10,32 +11,20 @@ namespace HeadsUpVideo.Desktop.ViewModels
 
         public Command OpenFileCmd { get; set; }
         public Command ClearRecentFilesCmd { get; set; }
-        public Command<FileViewModel> OpenRecentFileCmd { get; set; }
-
-        public FileViewModel CurrentFile { get; set; }
-
+        public Command<FileModel> OpenRecentFileCmd { get; set; }
+        public Command<String> OpenDiagramCmd { get; set; }
+        
         public MasterPageViewModel()
         {
             OpenFileCmd = NavigationModel.OpenNewFileCmd;
-            ClearRecentFilesCmd = LocalIO.ClearRecentFilesCmd;
-            OpenRecentFileCmd = NavigationModel.OpenFileViewModelCmd;
+            ClearRecentFilesCmd = StorageIO.ClearRecentFilesCmd;
+            OpenRecentFileCmd = NavigationModel.OpenFileModelCmd;
+            OpenDiagramCmd = NavigationModel.OpenDiagramImageCmd;
         }
 
         public void Initialize()
         {
 
-        }
-
-        private async void OpenRecentFile(FileViewModel recentFile)
-        {
-            var file = await LocalIO.OpenFile(recentFile.Path, false);
-            CurrentFile = new FileViewModel()
-            {
-                ContentType = file.ContentType,
-                Path = file.Path,
-                Name = file.Name,
-                Stream = file.Stream
-            };
         }
     }
 }

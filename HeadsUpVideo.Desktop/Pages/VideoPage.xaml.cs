@@ -27,7 +27,7 @@ namespace HeadsUpVideo.Desktop.Pages
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            var file = e.Parameter as FileViewModel;
+            var file = e.Parameter as FileModel;
 
             if (file != null && file.Stream != null)
                 VideoPlayer.SetSource(file.Stream, file.ContentType);

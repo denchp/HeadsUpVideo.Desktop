@@ -20,7 +20,6 @@ namespace HeadsUpVideo.Desktop.ViewModels
         public TimeSpan LastVideoPosition { get; set; }
         public Command PlayPauseCmd { get; set; }
 
-
         public VideoPageViewModel()
         {
             PlayPauseCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = TogglePlayPause };
@@ -29,6 +28,7 @@ namespace HeadsUpVideo.Desktop.ViewModels
         public void Initialize(ICustomCanvas canvas)
         {
             Canvas = canvas;
+            Canvas.Initialize();
         }
 
         private void TogglePlayPause()

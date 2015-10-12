@@ -1,10 +1,4 @@
-﻿using HeadsUpVideo.Desktop.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Windows.UI;
+﻿using HeadsUpVideo.Desktop.Models;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 
@@ -12,9 +6,9 @@ namespace HeadsUpVideo.Desktop.CustomControls
 {
     public class PenButton : AppBarButton
     {
-        public PenViewModel PenModel { get; set; }
+        public PenModel PenModel { get; set; }
 
-        public PenButton(PenViewModel model)
+        public PenButton(PenModel model)
         {
             PenModel = model;
             PenModel.PropertyChanged += PenModel_PropertyChanged;

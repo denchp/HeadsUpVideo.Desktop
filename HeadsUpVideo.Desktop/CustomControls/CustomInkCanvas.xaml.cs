@@ -16,9 +16,6 @@ using Windows.UI.Xaml.Shapes;
 
 namespace HeadsUpVideo.Desktop.CustomControls
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class CustomInkCanvas : UserControl, ICustomCanvas
     {
         List<Path> _savePoint;
@@ -31,27 +28,28 @@ namespace HeadsUpVideo.Desktop.CustomControls
         Canvas _canvas;
 
         public Command ClearQuickPensCmd { get; set; }
-        public Command<PenViewModel> AddQuickPenCmd { get; set; }
+        public Command<PenModel> AddQuickPenCmd { get; set; }
         public Command ClearLinesCmd { get; set; }
         public Command CreateSavePointCmd { get; set; }
         public Command<string> SetLineStyleCmd { get; set; }
-        public Command<PenViewModel> LoadQuickPenCmd { get; set; }
+        public Command<PenModel> LoadQuickPenCmd { get; set; }
 
-        public ObservableCollection<PenViewModel> QuickPens { get; set; }
-        public PenViewModel CurrentPen { get; set; }
+        public ObservableCollection<PenModel> QuickPens { get; private set; }
+        public PenModel CurrentPen { get; set; }
 
 
         public CustomInkCanvas()
         {
-            CurrentPen = new PenViewModel()
+            CurrentPen = new PenModel()
             {
                 IsFreehand = true,
                 Color = Colors.Blue,
-                LineStyle = PenViewModel.LineType.Solid,
+                LineStyle = PenModel.LineType.Solid,
                 Size = 10
             };
 
             this.InitializeComponent();
+
             _inkCanvas = this.InkCanvas;
             _canvas = this.LineCanvas;
             _lines = new List<Path>();
@@ -63,23 +61,32 @@ namespace HeadsUpVideo.Desktop.CustomControls
             _inkCanvas.InkPresenter.InputDeviceTypes = Windows.UI.Core.CoreInputDeviceTypes.Mouse | Windows.UI.Core.CoreInputDeviceTypes.Pen;
             _inkCanvas.InkPresenter.StrokesCollected += InkPresenter_StrokesCollected;
 
-            QuickPens = new ObservableCollection<PenViewModel>();
+            QuickPens = StorageIO.QuickPens;
+
             CreateSavePointCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = CreateSavePoint };
-            ClearQuickPensCmd = LocalIO.ClearQuickPensCmd;
-            AddQuickPenCmd = LocalIO.AddQuickPenCmd;
-            LoadQuickPenCmd = new Command<PenViewModel>() { CanExecuteFunc = obj => true, ExecuteFunc = LoadQuickPen };
+            ClearQuickPensCmd = StorageIO.ClearQuickPensCmd;
+            AddQuickPenCmd = StorageIO.AddQuickPenCmd;
+            LoadQuickPenCmd = new Command<PenModel>() { CanExecuteFunc = obj => true, ExecuteFunc = LoadQuickPen };
             ClearLinesCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = Clear };
             SetLineStyleCmd = new Command<string>() { CanExecuteFunc = obj => true, ExecuteFunc = SetLineStyle };
-        }
 
-        public void Initialize(PenViewModel pen)
-        {
             _savePoint = new List<Path>();
             _activeTemplate = new List<Path>();
             _lines = new List<Path>();
             _polylines = new List<Polyline>();
             _polylineSavePoint = new List<Polyline>();
 
+            this.DataContext = this;
+        }
+
+        public void Initialize()
+        {
+            Initialize(CurrentPen);
+            QuickPens.CollectionChanged += QuickPens_CollectionChanged;
+        }
+
+        public void Initialize(PenModel pen)
+        {
             CurrentPen = pen;
             CurrentPen.PropertyChanged += PenChanged;
 
@@ -194,7 +201,7 @@ namespace HeadsUpVideo.Desktop.CustomControls
                 }
 
 
-                if (CurrentPen.LineStyle == PenViewModel.LineType.Dashed)
+                if (CurrentPen.LineStyle == PenModel.LineType.Dashed)
                     path.StrokeDashArray = new DoubleCollection() { 5, 2 };
 
                 _lines.Add(path);
@@ -261,13 +268,13 @@ namespace HeadsUpVideo.Desktop.CustomControls
                 _canvas.Children.Add(polyline);
         }
 
-        public void SetPen(PenViewModel currentPen)
+        public void SetPen(PenModel currentPen)
         {
             CurrentPen = currentPen;
             PenChanged(this, null);
         }
 
-        private void LoadQuickPen(PenViewModel obj)
+        private void LoadQuickPen(PenModel obj)
         {
             CurrentPen = obj;
             SetPen(CurrentPen);
@@ -277,7 +284,7 @@ namespace HeadsUpVideo.Desktop.CustomControls
         {
             QuickPenButtons.Children.Clear();
 
-            foreach (PenViewModel pen in QuickPens)
+            foreach (PenModel pen in QuickPens)
             {
                 QuickPenButtons.Children.Add(new PenButton(pen)
                 {
@@ -332,6 +339,13 @@ namespace HeadsUpVideo.Desktop.CustomControls
                 case "Arrow":
                     CurrentPen.EnableArrow = !CurrentPen.EnableArrow;
                     break;
+
+                case "Straight":
+                    CurrentPen.IsFreehand = false;
+                    break;
+                case "Freehand":
+                    CurrentPen.IsFreehand = true;
+                    break;
             }
         }
 
@@ -339,7 +353,7 @@ namespace HeadsUpVideo.Desktop.CustomControls
         {
             QuickPens.Clear();
 
-            foreach (var pen in LocalIO.QuickPens)
+            foreach (var pen in StorageIO.QuickPens)
                 QuickPens.Add(pen);
         }
 

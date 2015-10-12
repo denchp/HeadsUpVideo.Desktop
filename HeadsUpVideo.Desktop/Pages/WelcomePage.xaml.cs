@@ -23,26 +23,14 @@ namespace HeadsUpVideo.Desktop.Pages
             this.InitializeComponent();
 
             viewModel = new WelcomePageViewModel();
-        }
-
-        protected override void OnNavigatedTo(NavigationEventArgs e)
-        {
-            
-            var files = e.Parameter as IEnumerable<FileViewModel>;
-
-            this.DataContext = viewModel;
-
-            if (files != null)
-                viewModel.RecentFiles = (ObservableCollection<FileViewModel>)files;
 
             Initialize();
-
-            base.OnNavigatedTo(e);
         }
 
         private void Initialize()
         {
             viewModel.RecentFiles.CollectionChanged += RecentFiles_CollectionChanged;
+            RecentFiles_CollectionChanged(this, null);
         }
 
         private void RecentFiles_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -59,7 +47,7 @@ namespace HeadsUpVideo.Desktop.Pages
                 {
                     Content = file.Name,
                     Command = viewModel.OpenRecentFileCmd,
-                    CommandParameter = file
+                    CommandParameter = file.Path
                 };
                 lstRecentFiles.Children.Add(link);
             }
