@@ -94,9 +94,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
-    <Compile Include="Base\BaseCommand.cs" />
     <Compile Include="Base\Command.cs" />
-    <Compile Include="Base\StringCommand.cs" />
     <Compile Include="CustomControls\CustomInkCanvas.xaml.cs">
       <DependentUpon>CustomInkCanvas.xaml</DependentUpon>
     </Compile>

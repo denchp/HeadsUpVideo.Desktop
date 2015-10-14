@@ -36,7 +36,7 @@
                         <cc:ToggleAppBarButton x:Name="btnSmall" Icon="FontDecrease" Label="Small" Command="{Binding SetLineStyleCmd}" CommandParameter="Small"/>
                         <cc:ToggleAppBarButton x:Name="btnMed" Icon="FontSize" Label="Medium" Command="{Binding SetLineStyleCmd}" CommandParameter="Medium"/>
                         <cc:ToggleAppBarButton x:Name="btnLarg" Icon="FontIncrease" Label="Large" Command="{Binding SetLineStyleCmd}" CommandParameter="Large"/>
-                        <AppBarButton x:Name="btnCurrentToQuick" Icon="SaveLocal" Label="Save Quick Pen" Command="{Binding AddQuickPenCmd}"/>
+                        <AppBarButton x:Name="btnCurrentToQuick" Icon="SaveLocal" Label="Save Quick Pen" Command="{Binding AddQuickPenCmd}" CommandParameter="{Binding CurrentPen}"/>
                         <AppBarButton x:Name="btnClearQuickPens" Icon="Delete" Label="Delete Quick Pens" Command="{Binding ClearQuickPensCmd}"/>
                     </StackPanel>
                 </StackPanel>

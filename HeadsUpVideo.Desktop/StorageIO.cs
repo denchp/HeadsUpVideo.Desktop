@@ -40,7 +40,7 @@ namespace HeadsUpVideo.Desktop
 
         private static void AddQuickPen(PenModel newPen)
         {
-            QuickPens.Add(newPen);
+            QuickPens.Add(new PenModel(newPen));
             SaveQuickPens();
         }
 
@@ -56,7 +56,7 @@ namespace HeadsUpVideo.Desktop
         public static Command ClearQuickPensCmd { get; set; }
         public static Command<PenModel> AddQuickPenCmd { get; set; }
 
-        private static void LoadQuickPens()
+        private static async void LoadQuickPens()
         {
             var folder = ApplicationData.Current.LocalFolder;
             var serializer = new XmlSerializer(typeof(List<PenModel>));
@@ -73,8 +73,15 @@ namespace HeadsUpVideo.Desktop
                 foreach (var pen in quickPens)
                     QuickPens.Add(pen);
             }
-            catch
+            catch (Exception ex)
             {
+
+                while (ex.InnerException != null)
+                    ex = ex.InnerException;
+
+                var dialog = new MessageDialog("Error loading quick pens list.  If this problem continues please contact support.\r\n" + ex.Message);
+                await dialog.ShowAsync();
+
                 QuickPens.Clear();
             }
         }
@@ -101,7 +108,6 @@ namespace HeadsUpVideo.Desktop
                 await dialog.ShowAsync();
             }
         }
-        
        
         private static void LoadRecentFileList()
         {

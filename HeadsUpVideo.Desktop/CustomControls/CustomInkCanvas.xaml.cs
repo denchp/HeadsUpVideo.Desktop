@@ -62,7 +62,7 @@ namespace HeadsUpVideo.Desktop.CustomControls
             _inkCanvas.InkPresenter.StrokesCollected += InkPresenter_StrokesCollected;
 
             QuickPens = StorageIO.QuickPens;
-
+            
             CreateSavePointCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = CreateSavePoint };
             ClearQuickPensCmd = StorageIO.ClearQuickPensCmd;
             AddQuickPenCmd = StorageIO.AddQuickPenCmd;
@@ -83,6 +83,7 @@ namespace HeadsUpVideo.Desktop.CustomControls
         {
             Initialize(CurrentPen);
             QuickPens.CollectionChanged += QuickPens_CollectionChanged;
+            StorageIO.LoadQuickPensCmd.Execute(null);
         }
 
         public void Initialize(PenModel pen)

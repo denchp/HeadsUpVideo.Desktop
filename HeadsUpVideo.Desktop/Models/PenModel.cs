@@ -19,13 +19,23 @@ namespace HeadsUpVideo.Desktop.Models
         private double size;
         LineType lineStyle;
 
+        public PenModel() { }
+        public PenModel(PenModel pen)
+        {
+            this.enableArrow = pen.EnableArrow;
+            this.color = pen.Color;
+            this.size = pen.Size;
+            this.isFreehand = pen.IsFreehand;
+            this.isHighlighter = pen.IsHighlighter;
+            this.lineStyle = pen.LineStyle;
+        }
+
         [DataMember]
         public bool EnableArrow
         {
             get { return enableArrow; }
             set { enableArrow = value; TriggerPropertyChange("EnableArrow"); }
         }
-
         [DataMember]
         public Color Color
         {
@@ -48,7 +58,9 @@ namespace HeadsUpVideo.Desktop.Models
         public LineType LineStyle
         {
             get { return lineStyle; }
-            set { lineStyle = value;
+            set
+            {
+                lineStyle = value;
                 TriggerPropertyChange("LineStyle");
                 TriggerPropertyChange("IsDouble");
                 TriggerPropertyChange("IsSolid");
@@ -59,7 +71,9 @@ namespace HeadsUpVideo.Desktop.Models
         public bool IsFreehand
         {
             get { return isFreehand; }
-            set { isFreehand = value;
+            set
+            {
+                isFreehand = value;
                 TriggerPropertyChange("IsFreehand");
                 TriggerPropertyChange("IsStraight");
             }
