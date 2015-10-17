@@ -11,13 +11,15 @@ namespace HeadsUpVideo.Desktop.Models
         {
             Solid,
             Dashed,
-            Double
+            Double,
+            Text
         }
 
         private bool enableArrow, isFreehand, isHighlighter;
         private Color color;
         private double size;
         LineType lineStyle;
+        private string text;
 
         public PenModel() { }
         public PenModel(PenModel pen)
@@ -77,6 +79,12 @@ namespace HeadsUpVideo.Desktop.Models
                 TriggerPropertyChange("IsFreehand");
                 TriggerPropertyChange("IsStraight");
             }
+        }
+        [DataMember]
+        public string Text
+        {
+            get { return text; }
+            set { text = value; TriggerPropertyChange("Text"); }
         }
 
         [IgnoreDataMember]
