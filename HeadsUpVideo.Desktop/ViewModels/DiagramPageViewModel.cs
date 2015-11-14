@@ -13,6 +13,10 @@ namespace HeadsUpVideo.Desktop.ViewModels
         {
             Canvas = canvas;
             Canvas.Initialize();
+            Canvas.ShowDiagramTools(true);
+
+            Canvas.SetPen(NavigationModel.Options.LastPen);
+            Canvas.SmoothingFactor = NavigationModel.Options.SmoothingFactor;
         }
     }
 }

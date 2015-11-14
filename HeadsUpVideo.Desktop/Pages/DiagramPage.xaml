@@ -9,13 +9,7 @@
     mc:Ignorable="d">
 
     <Grid>
-        <Image Source="{Binding DiagramBackground}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="{Binding DiagramVisibility}"/>
+        <Image Source="{Binding DiagramBackground}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         <cc:CustomInkCanvas x:Name="inkCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-        <!--<StackPanel VerticalAlignment="Center" HorizontalAlignment="Right" Background="#44FFFFFF" Orientation="Vertical">
-            <StackPanel Orientation="Vertical" x:Name="QuickPenButtons">
-            </StackPanel>
-            <AppBarButton x:Name="BtnSavePoint" Label="Save Point" Icon="Accept" Command="{Binding CreateSavePointCmd}"/>
-            <AppBarButton x:Name="btnClear" Label="Clear" Icon="Delete" Command="{Binding ClearLinesCmd}"/>
-        </StackPanel>-->
     </Grid>
 </Page>

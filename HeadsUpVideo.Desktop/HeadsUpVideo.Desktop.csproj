@@ -100,6 +100,7 @@
     </Compile>
     <Compile Include="CustomControls\PenButton.cs" />
     <Compile Include="Interfaces\ICustomCanvas.cs" />
+    <Compile Include="Models\BreakdownModel.cs" />
     <Compile Include="Models\OptionsModel.cs" />
     <Compile Include="Pages\DiagramPage.Xaml.cs">
       <DependentUpon>DiagramPage.xaml</DependentUpon>

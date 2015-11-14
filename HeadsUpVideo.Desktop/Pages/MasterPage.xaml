@@ -9,12 +9,13 @@
     xmlns:cc="using:HeadsUpVideo.Desktop.CustomControls">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <AppBar Canvas.ZIndex="9" x:Name="TopBar" Background="#44FFFFFF">
+        <AppBar Canvas.ZIndex="9" IsOpen="{Binding TopBarIsOpen}"  x:Name="TopBar" Background="#44FFFFFF">
             <StackPanel x:Name="pnlMain" Height="Auto" VerticalAlignment="top"  HorizontalAlignment="Left" Orientation="Horizontal">
                 <AppBarButton x:Name="btnOpen" HorizontalAlignment="Center" Icon="OpenFile" VerticalAlignment="Top" Label="Open File" Command="{Binding OpenFileCmd}" />
                 <AppBarButton x:Name="BtnRecentFiles" Icon="Bookmarks" Label="Recent" VerticalAlignment="Top"/>
                 <AppBarButton x:Name="btnHalfIce" HorizontalAlignment="Center" Icon="BackToWindow" VerticalAlignment="Top" Label="Half Ice" Command="{Binding OpenDiagramCmd}" CommandParameter="Assets/FullSheetLong.png"/>
                 <AppBarButton x:Name="btnFullIce" HorizontalAlignment="Center" Icon="FullScreen" VerticalAlignment="Top" Label="Full Ice" Command="{Binding OpenDiagramCmd}" CommandParameter="Assets/FullSheetAngle.png"/>
+                <AppBarButton x:Name="btnLiveReview" HorizontalAlignment="Center" Icon="Camera" VerticalAlignment="Top" Label="Live Review" Command="{Binding LiveReviewCmd }" />
                 <AppBarButton x:Name="btnErrorLog" Icon="Document" Visibility="Collapsed"/>
             </StackPanel>
         </AppBar>

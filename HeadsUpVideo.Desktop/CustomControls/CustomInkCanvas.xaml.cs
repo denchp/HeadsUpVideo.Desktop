@@ -14,6 +14,7 @@ using Windows.UI.Xaml.Shapes;
 using System;
 using System.Linq;
 using Windows.UI.Xaml;
+using Windows.UI.Text;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -21,22 +22,21 @@ namespace HeadsUpVideo.Desktop.CustomControls
 {
     public sealed partial class CustomInkCanvas : UserControl, ICustomCanvas
     {
-        List<Path> _activeTemplate;
-
         Dictionary<object, int> _currentContent;
         Dictionary<object, int> _savePoint;
         Dictionary<object, int> _redo;
 
-
         InkSynchronizer _synch;
         InkCanvas _inkCanvas;
         Canvas _canvas;
+        Canvas _actorCanvas;
 
         public Command ClearQuickPensCmd { get; set; }
         public Command<PenModel> AddQuickPenCmd { get; set; }
         public Command ClearLinesCmd { get; set; }
         public Command CreateSavePointCmd { get; set; }
         public Command<string> SetLineStyleCmd { get; set; }
+        public Command<string> SetPenTextCmd { get; set; }
         public Command<PenModel> LoadQuickPenCmd { get; set; }
         public Command UndoCmd { get; set; }
         public Command RedoCmd { get; set; }
@@ -44,6 +44,9 @@ namespace HeadsUpVideo.Desktop.CustomControls
         public ObservableCollection<PenModel> QuickPens { get; private set; }
         public PenModel CurrentPen { get; set; }
 
+        public int SmoothingFactor { get; set; }
+
+        TextBlock draggingActor;
 
         public CustomInkCanvas()
         {
@@ -59,9 +62,9 @@ namespace HeadsUpVideo.Desktop.CustomControls
 
             _inkCanvas = this.InkCanvas;
             _canvas = this.LineCanvas;
+            _actorCanvas = this.ActorCanvas;
             _savePoint = new Dictionary<object, int>();
             _currentContent = new Dictionary<object, int>();
-            _activeTemplate = new List<Path>();
             _redo = new Dictionary<object, int>();
 
             _synch = _inkCanvas.InkPresenter.ActivateCustomDrying();
@@ -78,10 +81,27 @@ namespace HeadsUpVideo.Desktop.CustomControls
             SetLineStyleCmd = new Command<string>() { CanExecuteFunc = obj => true, ExecuteFunc = SetLineStyle };
             UndoCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = Undo };
             RedoCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = Redo };
-
             this.DataContext = this;
+            CurrentPen.PropertyChanged += CurrentPen_PropertyChanged;
+
+            SmoothingFactor = 16;
         }
 
+        private void CurrentPen_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            var inkDA = new InkDrawingAttributes()
+            {
+                Color = CurrentPen.Color,
+                Size = new Size(CurrentPen.Size, CurrentPen.Size),
+                DrawAsHighlighter = CurrentPen.IsHighlighter,
+                IgnorePressure = true
+            };
+
+            _inkCanvas.InkPresenter.UpdateDefaultDrawingAttributes(inkDA);
+
+            NavigationModel.Options.LastPen = CurrentPen;
+            StorageIO.SaveOptions(NavigationModel.Options);
+        }
 
         private void Redo()
         {
@@ -91,7 +111,7 @@ namespace HeadsUpVideo.Desktop.CustomControls
             var lowestRedoValue = _redo.Values.Min();
             var removeList = new List<object>();
             foreach (var obj in _redo.Where(x => x.Value == lowestRedoValue))
-            { 
+            {
                 _currentContent.Add(obj.Key, obj.Value);
                 removeList.Add(obj.Key);
             }
@@ -146,7 +166,7 @@ namespace HeadsUpVideo.Desktop.CustomControls
                 Color = CurrentPen.Color,
                 FitToCurve = false,
                 Size = new Size(CurrentPen.Size, CurrentPen.Size),
-                IgnorePressure = false,
+                IgnorePressure = true,
                 DrawAsHighlighter = CurrentPen.IsHighlighter
             };
 
@@ -169,7 +189,7 @@ namespace HeadsUpVideo.Desktop.CustomControls
                 var points = new List<Point>();
                 Point bearingPoint;
                 Point lastPoint;
-                int includeInterval = 10;
+                int includeInterval = SmoothingFactor;
                 int includePoint = includeInterval;
 
                 foreach (var p in s.GetInkPoints())
@@ -189,15 +209,7 @@ namespace HeadsUpVideo.Desktop.CustomControls
                 if (includePoint % includeInterval != 0) // make sure we don't chop off the end of the line!
                     points.Add(lastPoint);
 
-                if (CurrentPen.LineStyle == PenModel.LineType.Text)
-                {
-                    RenderTextPen(lastPoint);
-                }
-                else
-                {
-                    RenderStandardPen(points, lastPoint, bearingPoint);
-                }
-
+                RenderStandardPen(points, lastPoint, bearingPoint);
             }
         }
 
@@ -272,17 +284,18 @@ namespace HeadsUpVideo.Desktop.CustomControls
         private void RedrawCurrent(Boolean clearRedo = true)
         {
             _canvas.Children.Clear();
+            _actorCanvas.Children.Clear();
 
             if (clearRedo)
                 _redo.Clear();
 
             foreach (var line in _currentContent)
-                _canvas.Children.Add(line.Key as UIElement);
-        }
-
-        private void RenderTextPen(Point lastPoint)
-        {
-            throw new NotImplementedException();
+            {
+                if (line.Key as TextBlock != null)
+                    _actorCanvas.Children.Add(line.Key as UIElement);
+                else
+                    _canvas.Children.Add(line.Key as UIElement);
+            }
         }
 
         public void CreateSavePoint()
@@ -296,11 +309,9 @@ namespace HeadsUpVideo.Desktop.CustomControls
         public void Clear()
         {
             if (_currentContent.Count == _savePoint.Count
-                || _currentContent.Count == _activeTemplate.Count
-                || _currentContent.Count == _savePoint.Count + _activeTemplate.Count)
+                || _currentContent.Count == _savePoint.Count)
             {
                 _savePoint.Clear();
-                _activeTemplate.Clear();
             }
 
             ClearLines(true, true);
@@ -309,6 +320,7 @@ namespace HeadsUpVideo.Desktop.CustomControls
         public void ClearLines(bool restoreSave = false, bool restoreTemplate = false)
         {
             _canvas.Children.Clear();
+            _actorCanvas.Children.Clear();
             _currentContent.Clear();
 
             if (restoreSave)
@@ -317,9 +329,12 @@ namespace HeadsUpVideo.Desktop.CustomControls
                     _currentContent.Add(line.Key, line.Value);
             }
 
-            if (restoreTemplate)
-                foreach (var line in _activeTemplate)
-                    _currentContent.Add(line, 0);
+            //if (restoreTemplate)
+            //    foreach (var line in _activeTemplate)
+            //        if (line as TextBlock != null)
+            //            _actorCanvas.Children.Add(line as UIElement);
+            //        else
+            //            _canvas.Children.Add(line.Key as UIElement);
 
             foreach (var line in _currentContent)
                 _canvas.Children.Add(line.Key as UIElement);
@@ -327,7 +342,11 @@ namespace HeadsUpVideo.Desktop.CustomControls
 
         public void SetPen(PenModel currentPen)
         {
+            if (currentPen == null)
+                return;
+
             CurrentPen = currentPen;
+            CurrentPen.PropertyChanged += CurrentPen_PropertyChanged;
             PenChanged(this, null);
         }
 
@@ -403,6 +422,30 @@ namespace HeadsUpVideo.Desktop.CustomControls
                 case "Freehand":
                     CurrentPen.IsFreehand = true;
                     break;
+
+                case "Normal":
+                    CurrentPen.IsFreehand = true;
+                    CurrentPen.EnableArrow = true;
+                    CurrentPen.Size = 7;
+                    CurrentPen.IsHighlighter = false;
+                    CurrentPen.IsNormal = true;
+                    CurrentPen.IsPass = false;
+                    break;
+                case "Pass":
+                    CurrentPen.IsFreehand = false;
+                    CurrentPen.LineStyle = PenModel.LineType.Dashed;
+                    CurrentPen.Size = 7;
+                    CurrentPen.IsHighlighter = false;
+                    CurrentPen.IsPass = true;
+                    CurrentPen.IsNormal = false;
+                    break;
+                case "Highlighter":
+                    CurrentPen.IsFreehand = true;
+                    CurrentPen.LineStyle = PenModel.LineType.Solid;
+                    CurrentPen.IsHighlighter = true;
+                    CurrentPen.Size = 20;
+                    CurrentPen.EnableArrow = false;
+                    break;
             }
         }
 
@@ -414,6 +457,61 @@ namespace HeadsUpVideo.Desktop.CustomControls
                 QuickPens.Add(pen);
         }
 
+        private void Actor_DragStarting(UIElement sender, DragStartingEventArgs args)
+        {
+            draggingActor = new TextBlock();
+            draggingActor.Text = ((TextBlock)sender).Text;
+            draggingActor.FontSize = CurrentPen.Size * 4;
+            draggingActor.IsColorFontEnabled = true;
+            draggingActor.FontWeight = FontWeights.Bold;
+            draggingActor.Foreground = new SolidColorBrush(CurrentPen.Color);
+            draggingActor.CanDrag = true;
+            draggingActor.DragStarting += ExistingActor_DragStarting;
+        }
 
+        private void ExistingActor_DragStarting(UIElement sender, DragStartingEventArgs args)
+        {
+            draggingActor = sender as TextBlock;
+        }
+
+        private void Actor_Drop(object sender, DragEventArgs e)
+        {
+            if (draggingActor == null)
+                return;
+
+            if (_currentContent.ContainsKey(draggingActor))
+                _currentContent.Remove(draggingActor);
+
+            var position = e.GetPosition((UIElement)sender);
+
+            Canvas.SetLeft(draggingActor, position.X - CurrentPen.Size);
+            Canvas.SetTop(draggingActor, position.Y - CurrentPen.Size * 4);
+
+            var nextStrokeId = _currentContent.Any() ? _currentContent.Values.Max() + 1 : 1;
+
+            _currentContent.Add(draggingActor, nextStrokeId);
+
+            RedrawCurrent();
+
+            draggingActor = null;
+        }
+
+        private void Actor_DragEnter(object sender, DragEventArgs e)
+        {
+            if (draggingActor == null)
+            {
+                e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
+                return;
+            }
+
+            e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move;
+            e.DragUIOverride.IsCaptionVisible = false;
+            e.DragUIOverride.IsGlyphVisible = false;
+        }
+
+        public void ShowDiagramTools(bool showTools)
+        {
+            this.DiagramTools.Visibility = showTools ? Visibility.Visible : Visibility.Collapsed;
+        }
     }
 }

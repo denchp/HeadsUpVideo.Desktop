@@ -10,7 +10,14 @@ namespace HeadsUpVideo.Desktop.Models
     [DataContract]
     public class OptionsModel
     {
+        public OptionsModel()
+        {
+            SmoothingFactor = 10;
+        }
+
         [DataMember]
-        int SmoothingFactor { get; set; }
+        public int SmoothingFactor { get; set; }
+        [DataMember]
+        public PenModel LastPen { get; set; }
     }
 }

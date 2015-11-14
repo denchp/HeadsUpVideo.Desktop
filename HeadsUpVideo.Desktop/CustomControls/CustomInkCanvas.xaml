@@ -8,66 +8,44 @@
     mc:Ignorable="d"
     xmlns:cc="using:HeadsUpVideo.Desktop.CustomControls">
     <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-        <Canvas x:Name="LineCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Canvas>
-        <InkCanvas x:Name="InkCanvas"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></InkCanvas>
+        <Canvas x:Name="LineCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" DragEnter="Actor_DragEnter" Drop="Actor_Drop" AllowDrop="true"></Canvas>
+        <InkCanvas x:Name="InkCanvas"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" DragEnter="Actor_DragEnter" Drop="Actor_Drop" AllowDrop="true"></InkCanvas>
+        <Canvas x:Name="ActorCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" DragEnter="Actor_DragEnter" Drop="Actor_Drop" AllowDrop="true"></Canvas>
+
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Right" Background="#44FFFFFF" Orientation="Vertical">
             <StackPanel Orientation="Vertical" x:Name="QuickPenButtons">
+                
             </StackPanel>
+            <ToggleButton Command="{Binding SetLineStyleCmd}" CommandParameter="Normal" IsChecked="{ Binding CurrentPen.IsNormal }" Content="Normal" Background="#44FFFFFF"/>
+            <ToggleButton Command="{Binding SetLineStyleCmd}" CommandParameter="Pass" IsChecked="{ Binding CurrentPen.IsPass }" Content="Pass" Background="#44FFFFFF"/>
+            <ToggleButton Command="{Binding SetLineStyleCmd}" CommandParameter="Arrow" IsChecked="{ Binding CurrentPen.EnableArrow }" Content="Arrow" Background="#44FFFFFF"/>
+            <ToggleButton Command="{Binding SetLineStyleCmd}" CommandParameter="Highlighter" IsChecked="{ Binding CurrentPen.IsHighlighter }" Content="Highlight" Background="#44FFFFFF"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Button Grid.Column="0" Grid.Row="0" Width="25" Height="25" Margin="5,0,5,0" Background="Red" Command="{Binding SetLineStyleCmd}" CommandParameter="Red" Content=" "/>
+                <Button Grid.Column="1" Grid.Row="0" Width="25" Height="25" Margin="5,0,5,0" Background="Yellow" Command="{Binding SetLineStyleCmd}" CommandParameter="Yellow" Content=" "/>
+                <Button Grid.Column="0" Grid.Row="1" Width="25" Height="25" Margin="5,0,5,0" Background="Green" Command="{Binding SetLineStyleCmd}" CommandParameter="Green" Content=" "/>
+                <Button Grid.Column="1" Grid.Row="1" Width="25" Height="25" Margin="5,0,5,0" Background="Black" Command="{Binding SetLineStyleCmd}" CommandParameter="Black" Content=" "/>
+            </Grid>
             <AppBarButton Label="Save Point" Icon="Accept" Command="{Binding CreateSavePointCmd}"/>
             <AppBarButton Label="Clear" Icon="Delete" Command="{Binding ClearLinesCmd}"/>
             <AppBarButton Label="Undo" Icon="Undo" Command="{Binding UndoCmd}"/>
             <AppBarButton Label="Redo" Icon="Redo" Command="{Binding RedoCmd}"/>
         </StackPanel>
-        <AppBar x:Name="BottomBar" VerticalAlignment="Bottom" Background="#22FFFFFF">
-            <Hub>
-                <HubSection Header="Pen Options">
-                    <DataTemplate>
-                        <StackPanel x:Name="pnlLines" Orientation="Horizontal" Margin="0,10,0,0" HorizontalAlignment="Right">
-                            <cc:ToggleAppBarButton IsSelected="{Binding CurrentPen.IsStraight}" Icon="Switch" Label="Straight" Command="{Binding SetLineStyleCmd}" CommandParameter="Straight"/>
-                            <cc:ToggleAppBarButton IsSelected="{Binding CurrentPen.IsFreehand}" Icon="Shuffle" Label="Free Hand" Command="{Binding SetLineStyleCmd}" CommandParameter="Freehand"/>
-                            <cc:ToggleAppBarButton IsSelected="{Binding CurrentPen.EnableArrow}" Icon="Go" Label="Arrow" Command="{Binding SetLineStyleCmd}" CommandParameter="Arrow"/>
-                            <cc:ToggleAppBarButton IsSelected="{Binding CurrentPen.IsSolid}" Command="{Binding SetLineStyleCmd}" CommandParameter="Solid" Label="Solid Line"/>
-                            <cc:ToggleAppBarButton IsSelected="{Binding CurrentPen.IsDashed}" Command="{Binding SetLineStyleCmd}" CommandParameter="Dash" Label="Dashed Line"/>
-                            <AppBarSeparator/>
-                            <cc:ToggleAppBarButton Width="25" Margin="5,0,5,0" Background="Red" Command="{Binding SetLineStyleCmd}" CommandParameter="Red"/>
-                            <cc:ToggleAppBarButton Width="25" Margin="5,0,5,0" Background="Yellow" Command="{Binding SetLineStyleCmd}" CommandParameter="Yellow"/>
-                            <cc:ToggleAppBarButton Width="25" Margin="5,0,5,0" Background="Blue" Command="{Binding SetLineStyleCmd}" CommandParameter="Blue"/>
-                            <cc:ToggleAppBarButton Width="25" Margin="5,0,5,0" Background="Green" Command="{Binding SetLineStyleCmd}" CommandParameter="Green"/>
-                            <cc:ToggleAppBarButton Width="25" Margin="5,0,5,0" Background="Black" Command="{Binding SetLineStyleCmd}" CommandParameter="Black"/>
-                            <AppBarSeparator/>
-                            <cc:ToggleAppBarButton x:Name="btnPen" Icon="Highlight" Label="Highlighter" Command="{Binding SetLineStyleCmd}" CommandParameter="Highlight"/>
-                            <cc:ToggleAppBarButton x:Name="btnSmall" Icon="FontDecrease" Label="Small" Command="{Binding SetLineStyleCmd}" CommandParameter="Small"/>
-                            <cc:ToggleAppBarButton x:Name="btnMed" Icon="FontSize" Label="Medium" Command="{Binding SetLineStyleCmd}" CommandParameter="Medium"/>
-                            <cc:ToggleAppBarButton x:Name="btnLarg" Icon="FontIncrease" Label="Large" Command="{Binding SetLineStyleCmd}" CommandParameter="Large"/>
-                            <AppBarButton x:Name="btnCurrentToQuick" Icon="SaveLocal" Label="Save Quick Pen" Command="{Binding AddQuickPenCmd}" CommandParameter="{Binding CurrentPen}"/>
-                            <AppBarButton x:Name="btnClearQuickPens" Icon="Delete" Label="Delete Quick Pens" Command="{Binding ClearQuickPensCmd}"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </HubSection>
-                <HubSection Header="Diagram Options">
-                    <DataTemplate>
-                        <StackPanel x:Name="pnlLines" Orientation="Horizontal" Margin="0,10,0,0" HorizontalAlignment="Right">
-                            <StackPanel Orientation="Vertical">
-                                <StackPanel Orientation="Horizontal">
-                                    <ToggleButton Width="25" Height="25" Command="{Binding SetPenTextCmd}" Content="&#09711;" CommandParameter="X" Margin="0" Padding="0" FontFamily="Segoe UI"/>
-                                    <ToggleButton Width="25" Height="25" Command="{Binding SetPenTextCmd}" Content="&#09587;" CommandParameter="O" Margin="0" Padding="0" FontFamily="Segoe UI"/>
-                                    <ToggleButton Width="25" Height="25" Command="{Binding SetPenTextCmd}" Content="F" CommandParameter="F" Margin="0" Padding="0" FontFamily="Segoe UI"/>
-                                    <ToggleButton Width="25" Height="25" Command="{Binding SetPenTextCmd}" Content="D" CommandParameter="D" Margin="0" Padding="0" FontFamily="Segoe UI"/>
-                                    <ToggleButton Width="25" Height="25" Command="{Binding SetPenTextCmd}" Content="C" CommandParameter="C" Margin="0" Padding="0" FontFamily="Segoe UI"/>
-                                </StackPanel>
-                                <Button Height="25" Command="{Binding EnterCustomTextCmd}" Content="Custom" Margin="0" Padding="0" FontFamily="Segoe UI"/>
-                            </StackPanel>
-                            <AppBarSeparator/>
-                            <cc:ToggleAppBarButton Width="25" Margin="5,0,5,0" Background="Red" Command="{Binding SetLineStyleCmd}" CommandParameter="Red"/>
-                            <cc:ToggleAppBarButton Width="25" Margin="5,0,5,0" Background="Yellow" Command="{Binding SetLineStyleCmd}" CommandParameter="Yellow"/>
-                            <cc:ToggleAppBarButton Width="25" Margin="5,0,5,0" Background="Blue" Command="{Binding SetLineStyleCmd}" CommandParameter="Blue"/>
-                            <cc:ToggleAppBarButton Width="25" Margin="5,0,5,0" Background="Green" Command="{Binding SetLineStyleCmd}" CommandParameter="Green"/>
-                            <cc:ToggleAppBarButton Width="25" Margin="5,0,5,0" Background="Black" Command="{Binding SetLineStyleCmd}" CommandParameter="Black"/>
-                            <AppBarSeparator/>
-                        </StackPanel>
-                    </DataTemplate>
-                </HubSection>
-            </Hub>
-        </AppBar>
+        <StackPanel x:Name="DiagramTools" Visibility="Collapsed" VerticalAlignment="Top" Margin="0 20 0 0" HorizontalAlignment="Center" Background="#44FFFFFF" Orientation="Horizontal">
+            <TextBlock CanDrag="True" Width="45" Text="&#11096;" FontFamily="Segoe UI" FontSize="32" DragStarting="Actor_DragStarting"/>
+            <TextBlock CanDrag="True" Width="45" Text="&#10060;" FontFamily="Segoe UI" FontSize="32" DragStarting="Actor_DragStarting"/>
+            <TextBlock CanDrag="True" Width="45" Text="F" FontFamily="Segoe UI" FontSize="32" DragStarting="Actor_DragStarting"/>
+            <TextBlock CanDrag="True" Width="45" Text="D" FontFamily="Segoe UI" FontSize="32" DragStarting="Actor_DragStarting"/>
+            <TextBlock CanDrag="True" Width="45" Text="C" FontFamily="Segoe UI" FontSize="32" DragStarting="Actor_DragStarting"/>
+            <Button Height="25" Command="{Binding EnterCustomTextCmd}" Content="Custom" Margin="0" Padding="0" FontFamily="Segoe UI"/>
+        </StackPanel>
     </Grid>
 </UserControl>

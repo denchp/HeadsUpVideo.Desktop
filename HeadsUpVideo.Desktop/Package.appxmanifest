@@ -27,6 +27,9 @@
     <uap:Capability Name="removableStorage" />
     <uap:Capability Name="videosLibrary" />
     <uap:Capability Name="documentsLibrary" />
+    <uap:Capability Name="picturesLibrary" />
     <DeviceCapability Name="location" />
+    <DeviceCapability Name="webcam" />
+    <DeviceCapability Name="microphone" />
   </Capabilities>
 </Package>

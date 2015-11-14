@@ -63,7 +63,7 @@ namespace HeadsUpVideo.Desktop
             try
             {
                 List<PenModel> quickPens;
-                using (var fileStream = new FileStream(folder.Path + "\\quickPens.xml", FileMode.Open))
+                using (var fileStream = new FileStream(folder.Path + "\\quickPens.xml", FileMode.OpenOrCreate))
                 {
                     quickPens = serializer.Deserialize(fileStream) as List<PenModel>;
                 }
@@ -216,5 +216,44 @@ namespace HeadsUpVideo.Desktop
             }
         }
 
+        internal static OptionsModel LoadOptions()
+        {
+            var folder = ApplicationData.Current.LocalFolder;
+            var serializer = new XmlSerializer(typeof(OptionsModel));
+            try
+            {
+                using (var fileStream = new FileStream(folder.Path + "\\options.xml", FileMode.Open))
+                {
+                    return serializer.Deserialize(fileStream) as OptionsModel;
+                }
+
+                
+            }
+            catch
+            {
+                return new OptionsModel();
+            }
+        }
+
+
+        public static void SaveOptions(OptionsModel options)
+        {
+            var folder = ApplicationData.Current.LocalFolder;
+
+            try
+            {
+                var serializer = new XmlSerializer(typeof(OptionsModel));
+
+                using (var fileStream = new FileStream(folder.Path + "\\options.xml", FileMode.Create))
+                {
+                    serializer.Serialize(fileStream, options);
+                }
+            }
+            catch (Exception ex)
+            {
+                var dialog = new MessageDialog("Error saving options.  If this problem continues please contact support.\r\n\r\n" + ex.Message);
+                dialog.ShowAsync();
+            }
+        }
     }
 }

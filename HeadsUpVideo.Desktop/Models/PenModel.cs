@@ -95,6 +95,9 @@ namespace HeadsUpVideo.Desktop.Models
         public bool IsDashed { get { return lineStyle == LineType.Dashed; } }
         [IgnoreDataMember]
         public bool IsDouble { get { return lineStyle == LineType.Double; } }
-
+        [IgnoreDataMember]
+        public bool IsNormal { get; set; }
+        [IgnoreDataMember]
+        public bool IsPass { get; set; }
     }
 }
