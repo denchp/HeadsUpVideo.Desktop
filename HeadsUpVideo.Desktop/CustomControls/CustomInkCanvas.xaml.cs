@@ -71,7 +71,7 @@ namespace HeadsUpVideo.Desktop.CustomControls
             _inkCanvas.InkPresenter.InputDeviceTypes = Windows.UI.Core.CoreInputDeviceTypes.Mouse | Windows.UI.Core.CoreInputDeviceTypes.Pen;
             _inkCanvas.InkPresenter.StrokesCollected += InkPresenter_StrokesCollected;
 
-            QuickPens = StorageIO.QuickPens;
+            //QuickPens = StorageIO.QuickPens;
 
             CreateSavePointCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = CreateSavePoint };
             ClearQuickPensCmd = StorageIO.ClearQuickPensCmd;
@@ -144,9 +144,11 @@ namespace HeadsUpVideo.Desktop.CustomControls
 
         public void Initialize()
         {
+            this.NormalPenRadio.IsChecked = true;
+            this.SetLineStyle("Normal");
             Initialize(CurrentPen);
-            QuickPens.CollectionChanged += QuickPens_CollectionChanged;
-            StorageIO.LoadQuickPensCmd.Execute(null);
+            //QuickPens.CollectionChanged += QuickPens_CollectionChanged;
+            //StorageIO.LoadQuickPensCmd.Execute(null);
         }
 
         public void Initialize(PenModel pen)
@@ -154,7 +156,7 @@ namespace HeadsUpVideo.Desktop.CustomControls
             CurrentPen = pen;
             CurrentPen.PropertyChanged += PenChanged;
 
-            RefreshQuickPens();
+            //RefreshQuickPens();
 
             PenChanged(this, null);
         }
@@ -253,7 +255,8 @@ namespace HeadsUpVideo.Desktop.CustomControls
                 Stroke = new SolidColorBrush(CurrentPen.Color),
                 Opacity = CurrentPen.IsHighlighter ? .5 : 1,
                 StrokeThickness = CurrentPen.Size,
-                StrokeEndLineCap = PenLineCap.Triangle,
+                StrokeEndLineCap = PenLineCap.Round,
+                StrokeStartLineCap = PenLineCap.Round,
                 Data = geometry
             };
 
@@ -412,10 +415,7 @@ namespace HeadsUpVideo.Desktop.CustomControls
                     CurrentPen.Size = 20;
                     break;
 
-                case "Arrow":
-                    CurrentPen.EnableArrow = !CurrentPen.EnableArrow;
-                    break;
-
+               
                 case "Straight":
                     CurrentPen.IsFreehand = false;
                     break;
@@ -423,17 +423,30 @@ namespace HeadsUpVideo.Desktop.CustomControls
                     CurrentPen.IsFreehand = true;
                     break;
 
+                case "Arrow":
+                    CurrentPen.IsFreehand = true;
+                    CurrentPen.LineStyle = PenModel.LineType.Solid;
+                    CurrentPen.EnableArrow = true;
+                    CurrentPen.Size = 7;
+                    CurrentPen.IsHighlighter = false;
+                    CurrentPen.IsNormal = false;
+                    CurrentPen.IsPass = false;
+                    SmoothingFactor = 8;
+                    break;
                 case "Normal":
                     CurrentPen.IsFreehand = true;
-                    CurrentPen.EnableArrow = true;
+                    CurrentPen.LineStyle = PenModel.LineType.Solid;
+                    CurrentPen.EnableArrow = false;
                     CurrentPen.Size = 7;
                     CurrentPen.IsHighlighter = false;
                     CurrentPen.IsNormal = true;
                     CurrentPen.IsPass = false;
+                    SmoothingFactor = 1;
                     break;
                 case "Pass":
                     CurrentPen.IsFreehand = false;
                     CurrentPen.LineStyle = PenModel.LineType.Dashed;
+                    CurrentPen.EnableArrow = true;
                     CurrentPen.Size = 7;
                     CurrentPen.IsHighlighter = false;
                     CurrentPen.IsPass = true;
@@ -445,12 +458,16 @@ namespace HeadsUpVideo.Desktop.CustomControls
                     CurrentPen.IsHighlighter = true;
                     CurrentPen.Size = 20;
                     CurrentPen.EnableArrow = false;
+                    SmoothingFactor = 1;
                     break;
             }
         }
 
         private void RefreshQuickPens()
         {
+            if (QuickPens == null)
+                QuickPens = new ObservableCollection<PenModel>();
+
             QuickPens.Clear();
 
             foreach (var pen in StorageIO.QuickPens)

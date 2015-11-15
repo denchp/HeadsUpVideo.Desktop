@@ -13,13 +13,11 @@
         <Canvas x:Name="ActorCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" DragEnter="Actor_DragEnter" Drop="Actor_Drop" AllowDrop="true"></Canvas>
 
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Right" Background="#44FFFFFF" Orientation="Vertical">
-            <StackPanel Orientation="Vertical" x:Name="QuickPenButtons">
-                
-            </StackPanel>
-            <ToggleButton Command="{Binding SetLineStyleCmd}" CommandParameter="Normal" IsChecked="{ Binding CurrentPen.IsNormal }" Content="Normal" Background="#44FFFFFF"/>
-            <ToggleButton Command="{Binding SetLineStyleCmd}" CommandParameter="Pass" IsChecked="{ Binding CurrentPen.IsPass }" Content="Pass" Background="#44FFFFFF"/>
-            <ToggleButton Command="{Binding SetLineStyleCmd}" CommandParameter="Arrow" IsChecked="{ Binding CurrentPen.EnableArrow }" Content="Arrow" Background="#44FFFFFF"/>
-            <ToggleButton Command="{Binding SetLineStyleCmd}" CommandParameter="Highlighter" IsChecked="{ Binding CurrentPen.IsHighlighter }" Content="Highlight" Background="#44FFFFFF"/>
+            <StackPanel Orientation="Vertical" x:Name="QuickPenButtons"></StackPanel>
+            <RadioButton GroupName="PenStyle" Height="60" Command="{Binding SetLineStyleCmd}" Foreground="{Binding CurrentPen.Color}" CommandParameter="Arrow" Content="↝" FontFamily="Segoe UI Symbol" FontSize="35"/>
+            <RadioButton GroupName="PenStyle" Height="60" Command="{Binding SetLineStyleCmd}" Foreground="{Binding CurrentPen.Color}" CommandParameter="Pass" Content="⇢" FontFamily="Segoe UI Symbol" FontSize="35"/>
+            <RadioButton GroupName="PenStyle" Height="60" Command="{Binding SetLineStyleCmd}" Foreground="{Binding CurrentPen.Color}" CommandParameter="Normal" Content="✎" FontFamily="Segoe UI Symbol" FontSize="35" x:Name="NormalPenRadio"/>
+            <RadioButton GroupName="PenStyle" Height="60" Command="{Binding SetLineStyleCmd}" Foreground="{Binding CurrentPen.Color}" CommandParameter="Highlighter" Content="&#xE193;" FontFamily="Segoe UI Symbol" FontSize="35"/>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
@@ -40,12 +38,17 @@
             <AppBarButton Label="Redo" Icon="Redo" Command="{Binding RedoCmd}"/>
         </StackPanel>
         <StackPanel x:Name="DiagramTools" Visibility="Collapsed" VerticalAlignment="Top" Margin="0 20 0 0" HorizontalAlignment="Center" Background="#44FFFFFF" Orientation="Horizontal">
-            <TextBlock CanDrag="True" Width="45" Text="&#11096;" FontFamily="Segoe UI" FontSize="32" DragStarting="Actor_DragStarting"/>
-            <TextBlock CanDrag="True" Width="45" Text="&#10060;" FontFamily="Segoe UI" FontSize="32" DragStarting="Actor_DragStarting"/>
-            <TextBlock CanDrag="True" Width="45" Text="F" FontFamily="Segoe UI" FontSize="32" DragStarting="Actor_DragStarting"/>
-            <TextBlock CanDrag="True" Width="45" Text="D" FontFamily="Segoe UI" FontSize="32" DragStarting="Actor_DragStarting"/>
-            <TextBlock CanDrag="True" Width="45" Text="C" FontFamily="Segoe UI" FontSize="32" DragStarting="Actor_DragStarting"/>
-            <Button Height="25" Command="{Binding EnterCustomTextCmd}" Content="Custom" Margin="0" Padding="0" FontFamily="Segoe UI"/>
+            <StackPanel.Resources>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Margin" Value="10,0,10,0"/>
+                </Style>
+            </StackPanel.Resources>
+            <TextBlock CanDrag="True" Text="&#11096;" FontFamily="Segoe UI" FontSize="32" DragStarting="Actor_DragStarting"/>
+            <TextBlock CanDrag="True" Text="&#x2715;" FontFamily="Segoe UI" FontSize="32" DragStarting="Actor_DragStarting"/>
+            <TextBlock CanDrag="True" Text="F" FontFamily="Segoe UI" FontSize="32" DragStarting="Actor_DragStarting"/>
+            <TextBlock CanDrag="True" Text="D" FontFamily="Segoe UI" FontSize="32" DragStarting="Actor_DragStarting"/>
+            <TextBlock CanDrag="True" Text="C" FontFamily="Segoe UI" FontSize="32" DragStarting="Actor_DragStarting"/>
+            <!--<Button Height="25" Command="{Binding EnterCustomTextCmd}" Content="Custom" Margin="0" Padding="0" FontFamily="Segoe UI"/>-->
         </StackPanel>
     </Grid>
 </UserControl>

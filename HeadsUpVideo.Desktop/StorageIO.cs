@@ -226,8 +226,6 @@ namespace HeadsUpVideo.Desktop
                 {
                     return serializer.Deserialize(fileStream) as OptionsModel;
                 }
-
-                
             }
             catch
             {

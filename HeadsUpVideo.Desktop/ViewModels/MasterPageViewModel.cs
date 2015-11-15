@@ -39,8 +39,12 @@ namespace HeadsUpVideo.Desktop.ViewModels
             TopBarIsOpen = false;
             var dialog = new CameraCaptureUI();
             dialog.VideoSettings.Format = CameraCaptureUIVideoFormat.Mp4;
-            dialog.VideoSettings.MaxDurationInSeconds = 45;
-            var videoFile = await dialog.CaptureFileAsync(CameraCaptureUIMode.Video);
+            //dialog.VideoSettings.MaxDurationInSeconds = 45;
+            dialog.VideoSettings.AllowTrimming = false;
+            dialog.VideoSettings.MaxResolution = CameraCaptureUIMaxVideoResolution.HighestAvailable;
+            
+            StorageFile videoFile = null;
+            videoFile = await dialog.CaptureFileAsync(CameraCaptureUIMode.Video);
 
             if (videoFile == null)
                 return;

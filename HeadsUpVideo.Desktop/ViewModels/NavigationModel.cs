@@ -72,7 +72,6 @@ namespace HeadsUpVideo.Desktop.ViewModels
             NavigationModel.OpenFileModelCmd.Execute(newFile);
         }
 
-
         private static void OpenDiagramImage(string obj)
         {
             ContentFrame.Navigate(typeof(DiagramPage), obj);

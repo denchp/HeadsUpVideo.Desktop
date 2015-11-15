@@ -117,7 +117,7 @@ namespace HeadsUpVideo.Desktop.Pages
                 if (VideoPlayer.CurrentState == MediaElementState.Playing)
                     viewModel.PlayPauseCmd.Execute(null);
 
-                VideoPlayer.Position = viewModel.LastVideoPosition.Add(new TimeSpan(0, 0, 0, 0, (int)(scrubber.Value - 50) * 75));
+                VideoPlayer.Position = viewModel.LastVideoPosition.Add(new TimeSpan(0, 0, 0, 0, (int)(scrubber.Value - 50) * 125));
             }
         }
     }

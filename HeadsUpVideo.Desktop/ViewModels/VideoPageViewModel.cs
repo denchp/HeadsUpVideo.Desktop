@@ -29,6 +29,7 @@ namespace HeadsUpVideo.Desktop.ViewModels
         {
             Canvas = canvas;
             Canvas.Initialize();
+            Canvas.SetPen(NavigationModel.Options.LastPen);
         }
 
         private void TogglePlayPause()
