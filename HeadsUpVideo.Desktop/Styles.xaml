@@ -16,14 +16,14 @@
                                 <Setter Property="BorderThickness" Value="2"/>
                                 <Setter Property="BorderBrush" Value="#AAAAAAAA"/>
                                 <Setter Property="Foreground" Value="#AAAAAAAA"/>
-                                <Setter Property="Height" Value="70"/>
-                                <Setter Property="Width" Value="70"/>
+                                <Setter Property="Height" Value="Auto"/>
+                                <Setter Property="Width" Value="Auto"/>
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="Thumb">
                                             <Grid>
                                                 <Ellipse StrokeThickness="4" Stroke="{TemplateBinding BorderBrush}" Fill="{TemplateBinding Foreground}"/>
-                                                <AppBarButton IsEnabled="False" Background="Transparent" Icon="Play" VerticalAlignment="Stretch" HorizontalAlignment="Center" Height="Auto" Width="Auto" Margin="4,-6,0,0"/>
+                                                <TextBlock FontSize="40" FontFamily="Segoe UI Symbol" Foreground="Black" VerticalAlignment="Center" HorizontalAlignment="Center" Height="{TemplateBinding Height}" Width="{TemplateBinding Width}" Margin="12,-15,0,0" Text="&#x23F5;"/>
                                             </Grid>
                                         </ControlTemplate>
                                     </Setter.Value>

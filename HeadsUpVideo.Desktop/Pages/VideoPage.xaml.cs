@@ -17,7 +17,7 @@ namespace HeadsUpVideo.Desktop.Pages
     {
         private VideoPageViewModel viewModel;
         private Thumb sliderThumb;
-        private AppBarButton sliderButton;
+        private TextBlock sliderButton;
 
         public VideoPage()
         {
@@ -56,11 +56,11 @@ namespace HeadsUpVideo.Desktop.Pages
                 case MediaElementState.Playing:
                     VideoPlayer.Pause();
                     viewModel.LastVideoPosition = VideoPlayer.Position;
-                    sliderButton.Icon = new SymbolIcon(Symbol.Play);
+                    sliderButton.Text = "\u23F5";
                     break;
                 case MediaElementState.Paused:
                     Scrubber.Value = 50;
-                    sliderButton.Icon = new SymbolIcon(Symbol.Pause);
+                    sliderButton.Text = "\u23F8";
                     VideoPlayer.Play();
                     break;
             }
@@ -72,7 +72,7 @@ namespace HeadsUpVideo.Desktop.Pages
             sliderThumb.Tapped += Thumb_Tapped;
             sliderThumb.DragCompleted += Thumb_DragCompleted;
 
-            sliderButton = MyFindSliderChildOfType<AppBarButton>(sliderThumb);
+            sliderButton = MyFindSliderChildOfType<TextBlock>(sliderThumb);
         }
 
         private void Thumb_Tapped(object sender, TappedRoutedEventArgs e)
