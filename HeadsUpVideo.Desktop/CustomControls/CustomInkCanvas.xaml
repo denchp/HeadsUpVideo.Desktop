@@ -30,7 +30,7 @@
                 <Button Grid.Column="0" Grid.Row="0" Width="25" Height="25" Margin="5,0,5,0" Background="Red" Command="{Binding SetLineStyleCmd}" CommandParameter="Red" Content=" "/>
                 <Button Grid.Column="1" Grid.Row="0" Width="25" Height="25" Margin="5,0,5,0" Background="Yellow" Command="{Binding SetLineStyleCmd}" CommandParameter="Yellow" Content=" "/>
                 <Button Grid.Column="0" Grid.Row="1" Width="25" Height="25" Margin="5,0,5,0" Background="Green" Command="{Binding SetLineStyleCmd}" CommandParameter="Green" Content=" "/>
-                <Button Grid.Column="1" Grid.Row="1" Width="25" Height="25" Margin="5,0,5,0" Background="Black" Command="{Binding SetLineStyleCmd}" CommandParameter="Black" Content=" "/>
+                <Button Grid.Column="1" Grid.Row="1" Width="25" Height="25" Margin="5,0,5,0" Background="Blue" Command="{Binding SetLineStyleCmd}" CommandParameter="Black" Content=" "/>
             </Grid>
             <AppBarButton Label="Save Point" Icon="Accept" Command="{Binding CreateSavePointCmd}"/>
             <AppBarButton Label="Clear" Icon="Delete" Command="{Binding ClearLinesCmd}"/>

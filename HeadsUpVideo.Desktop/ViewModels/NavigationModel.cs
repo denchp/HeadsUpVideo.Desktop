@@ -32,6 +32,12 @@ namespace HeadsUpVideo.Desktop.ViewModels
         public static Command<FileModel> OpenFileModelCmd { get; set; }
         public static Command<string> OpenFileFromPathCmd { get; set; }
         public static Command OpenNewFileCmd { get; set; }
+
+        internal static void InstantReplay()
+        {
+            //ContentFrame.Navigate(typeof(InstantReplayPage));
+        }
+
         public static Command<string> OpenDiagramImageCmd { get; set; }
         public static Command LiveReviewCmd { get; set; }
 

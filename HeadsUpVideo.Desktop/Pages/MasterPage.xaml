@@ -15,7 +15,8 @@
                 <AppBarButton x:Name="BtnRecentFiles" Icon="Bookmarks" Label="Recent" VerticalAlignment="Top"/>
                 <AppBarButton x:Name="btnHalfIce" HorizontalAlignment="Center" Icon="BackToWindow" VerticalAlignment="Top" Label="Half Ice" Command="{Binding OpenDiagramCmd}" CommandParameter="Assets/FullSheetLong.png"/>
                 <AppBarButton x:Name="btnFullIce" HorizontalAlignment="Center" Icon="FullScreen" VerticalAlignment="Top" Label="Full Ice" Command="{Binding OpenDiagramCmd}" CommandParameter="Assets/FullSheetAngle.png"/>
-                <AppBarButton x:Name="btnLiveReview" HorizontalAlignment="Center" Icon="Camera" VerticalAlignment="Top" Label="Live Review" Command="{Binding LiveReviewCmd }" />
+                <AppBarButton x:Name="btnLiveReview" HorizontalAlignment="Center" Icon="Camera" VerticalAlignment="Top" Label="Quick Clip" Command="{Binding LiveReviewCmd }" />
+                <AppBarButton x:Name="btnInstantReplay" HorizontalAlignment="Center" Icon="Video" VerticalAlignment="Top" Label="Instant Replay" Command="{Binding InstantReplayCmd }" />
                 <AppBarButton x:Name="btnErrorLog" Icon="Document" Visibility="Collapsed"/>
             </StackPanel>
         </AppBar>
