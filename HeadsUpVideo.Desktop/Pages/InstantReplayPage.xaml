@@ -1,0 +1,16 @@
+﻿<Page
+    x:Class="HeadsUpVideo.Desktop.Pages.InstantReplayPage"
+    xmlns:cc="using:HeadsUpVideo.Desktop.CustomControls"
+    xmlns:vm="using:HeadsUpVideo.Desktop.Models"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:HeadsUpVideo.Desktop"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" Height="Auto" Width="Auto">
+    <Grid Background="white" x:Name="mainGrid">
+        <MediaElement HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="VideoPlayer" AutoPlay="False" IsMuted="true"/>
+        <cc:CustomInkCanvas x:Name="inkCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+        <Slider x:Name="Scrubber" HorizontalAlignment="Stretch" Value="50" Style="{StaticResource CircleSlider}" Margin="0,0,0,25" VerticalAlignment="Bottom"/>
+    </Grid>
+</Page>

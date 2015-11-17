@@ -35,7 +35,7 @@ namespace HeadsUpVideo.Desktop.ViewModels
 
         internal static void InstantReplay()
         {
-            //ContentFrame.Navigate(typeof(InstantReplayPage));
+            ContentFrame.Navigate(typeof(InstantReplayPage));
         }
 
         public static Command<string> OpenDiagramImageCmd { get; set; }

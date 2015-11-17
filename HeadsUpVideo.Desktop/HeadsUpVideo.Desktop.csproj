@@ -105,6 +105,10 @@
     <Compile Include="Pages\DiagramPage.Xaml.cs">
       <DependentUpon>DiagramPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\InstantReplayPage.xaml.cs">
+      <DependentUpon>InstantReplayPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ViewModels\InstantReplayPageViewModel.cs" />
     <Compile Include="ViewModels\DiagramPageViewModel.cs" />
     <Compile Include="ViewModels\MasterPageViewModel.cs" />
     <Compile Include="ViewModels\NavigationModel.cs" />
@@ -168,6 +172,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\DiagramPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\InstantReplayPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
