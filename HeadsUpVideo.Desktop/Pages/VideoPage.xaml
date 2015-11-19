@@ -8,9 +8,14 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" Height="Auto" Width="Auto">
-    <Grid Background="white" x:Name="mainGrid">
+    <Grid Background="white" x:Name="mainGrid" KeyDown="mainGrid_KeyDown">
         <MediaElement HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="VideoPlayer" AutoPlay="False" IsMuted="true"/>
         <cc:CustomInkCanvas x:Name="inkCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="Black">
+            <TextBlock Text="{Binding LastVideoPositionText}" Foreground="White"/>
+            <TextBlock Text="/" Foreground="White"/>
+            <TextBlock Text="{Binding VideoLengthText}" Foreground="White"/>
+        </StackPanel>
         <Slider x:Name="Scrubber" HorizontalAlignment="Stretch" Value="50" Style="{StaticResource CircleSlider}" Margin="0,0,0,25" VerticalAlignment="Bottom"/>
     </Grid>
 </Page>

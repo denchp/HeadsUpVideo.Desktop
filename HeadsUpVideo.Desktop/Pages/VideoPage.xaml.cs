@@ -19,6 +19,9 @@ namespace HeadsUpVideo.Desktop.Pages
         private Thumb sliderThumb;
         private TextBlock sliderButton;
 
+        public string LastVideoPositionText { get { return VideoPlayer.Position.Minutes.ToString() + ":" + VideoPlayer.Position.Seconds.ToString(); } }
+        public string VideoLengthText { get; set; }
+
         public VideoPage()
         {
             this.InitializeComponent();
@@ -29,10 +32,16 @@ namespace HeadsUpVideo.Desktop.Pages
         {
             var file = e.Parameter as FileModel;
 
+            VideoPlayer.MediaOpened += VideoPlayer_MediaOpened;
             if (file != null && file.Stream != null)
                 VideoPlayer.SetSource(file.Stream, file.ContentType);
 
             base.OnNavigatedTo(e);
+        }
+
+        private void VideoPlayer_MediaOpened(object sender, RoutedEventArgs e)
+        {
+            VideoLengthText = VideoPlayer.NaturalDuration.TimeSpan.Minutes.ToString() + ":" + VideoPlayer.NaturalDuration.TimeSpan.Seconds.ToString();
         }
 
         private void Initialize()
@@ -118,6 +127,28 @@ namespace HeadsUpVideo.Desktop.Pages
                     viewModel.PlayPauseCmd.Execute(null);
 
                 VideoPlayer.Position = viewModel.LastVideoPosition.Add(new TimeSpan(0, 0, 0, 0, (int)(scrubber.Value - 50) * 125));
+            }
+        }
+
+        private void mainGrid_KeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Windows.System.VirtualKey.Right:
+                    VideoPlayer.Position = viewModel.LastVideoPosition.Add(new TimeSpan(0, 1, 0));
+                    break;
+                case Windows.System.VirtualKey.Left:
+                    VideoPlayer.Position = viewModel.LastVideoPosition.Subtract(new TimeSpan(0, 1, 0));
+                    break;
+                case Windows.System.VirtualKey.PageUp:
+                    VideoPlayer.PlaybackRate += .2;
+                    break;
+                case Windows.System.VirtualKey.PageDown:
+                    VideoPlayer.PlaybackRate -= .2;
+                    break;
+                case Windows.System.VirtualKey.End:
+                    VideoPlayer.PlaybackRate = 1;
+                    break;
             }
         }
     }

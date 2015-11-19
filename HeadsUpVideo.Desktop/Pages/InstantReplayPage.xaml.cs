@@ -11,6 +11,13 @@ using System.Linq;
 using Windows.UI.Xaml.Navigation;
 using HeadsUpVideo.Desktop.Models;
 using System.IO;
+using Windows.Media.Capture;
+using Windows.Storage.Streams;
+using System.Threading.Tasks;
+using Windows.Media.MediaProperties;
+using Windows.Storage;
+using Windows.Storage.AccessCache;
+using System.Diagnostics;
 
 namespace HeadsUpVideo.Desktop.Pages
 {
@@ -19,6 +26,11 @@ namespace HeadsUpVideo.Desktop.Pages
         private InstantReplayPageViewModel viewModel;
         private Thumb sliderThumb;
         private TextBlock sliderButton;
+        private DVRRandomAccessStream fileStream;
+        private Stream storageFileStream;
+        private MediaCapture mediaCapture;
+        private StorageFile storageFile;
+        private LowLagMediaRecording lowLagRecord;
 
         public InstantReplayPage()
         {
@@ -36,17 +48,59 @@ namespace HeadsUpVideo.Desktop.Pages
             this.Loaded += InstantReplayPage_Loaded;
 
             viewModel = new InstantReplayPageViewModel();
-             
+
             viewModel.Initialize(inkCanvas);
             viewModel.TogglePlayPauseEvent += TogglePlayPause;
             Scrubber.ValueChanged += Scrubber_ValueChanged;
 
             var file = await viewModel.StartCapture(null);
-            await file.OpenStreamForReadAsync();
+            //var profiles = MediaCapture.FindAllVideoProfiles(cameraId);
+            MediaCapture capture = new MediaCapture();
 
 
-            VideoPlayer.SetSource(viewModel.Stream.CloneStream(), file.ContentType);
+            var devices = await Windows.Devices.Enumeration.DeviceInformation.FindAllAsync(Windows.Devices.Enumeration.DeviceClass.VideoCapture);
+
+            var captureInitSettings = new MediaCaptureInitializationSettings();
+            var profile = MediaEncodingProfile.CreateWmv(VideoEncodingQuality.Auto);
+
+            captureInitSettings.StreamingCaptureMode = StreamingCaptureMode.Video;
+            captureInitSettings.VideoDeviceId = devices[0].Id;
+          
+            mediaCapture = new MediaCapture();
+            await mediaCapture.InitializeAsync(captureInitSettings);
+            
+            storageFile = await KnownFolders.VideosLibrary.CreateFileAsync("InstantReplayCapture.wmv", CreationCollisionOption.GenerateUniqueName);
+            StorageApplicationPermissions.FutureAccessList.Add(storageFile);
+
+            storageFileStream = await storageFile.OpenStreamForWriteAsync();
+
+            fileStream = new DVRRandomAccessStream(storageFileStream);
+           
+            lowLagRecord = await mediaCapture.PrepareLowLagRecordToStreamAsync(profile, fileStream);
+            await lowLagRecord.StartAsync();
+           
+            VideoPlayer.SetSource(fileStream.PlaybackStream, storageFile.ContentType);
+
+            VideoPlayer.PartialMediaFailureDetected += VideoPlayer_PartialMediaFailureDetected;
+            VideoPlayer.MediaFailed += VideoPlayer_MediaFailed;
+            VideoPlayer.CurrentStateChanged += (s, e) => { Debug.WriteLine("State: " + VideoPlayer.CurrentState);  };
+            VideoPlayer.MediaEnded += VideoPlayer_MediaEnded;
+
             this.DataContext = viewModel;
+        }
+
+        private void VideoPlayer_MediaEnded(object sender, RoutedEventArgs e)
+        {
+             VideoPlayer.SetSource(fileStream.PlaybackStream, storageFile.ContentType);
+        }
+
+        private void VideoPlayer_MediaFailed(object sender, ExceptionRoutedEventArgs e)
+        {
+        }
+
+        private void VideoPlayer_PartialMediaFailureDetected(MediaElement sender, PartialMediaFailureDetectedEventArgs args)
+        {
+            throw new NotImplementedException();
         }
 
         private void TogglePlayPause(object sender, EventArgs e)
