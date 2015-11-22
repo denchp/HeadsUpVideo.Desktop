@@ -12,9 +12,9 @@
         <MediaElement HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="VideoPlayer" AutoPlay="False" IsMuted="true"/>
         <cc:CustomInkCanvas x:Name="inkCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="Black">
-            <TextBlock Text="{Binding LastVideoPositionText}" Foreground="White"/>
+            <TextBlock x:Name="CurrentPosition" Foreground="White"/>
             <TextBlock Text="/" Foreground="White"/>
-            <TextBlock Text="{Binding VideoLengthText}" Foreground="White"/>
+            <TextBlock x:Name="ClipLength" Foreground="White"/>
         </StackPanel>
         <Slider x:Name="Scrubber" HorizontalAlignment="Stretch" Value="50" Style="{StaticResource CircleSlider}" Margin="0,0,0,25" VerticalAlignment="Bottom"/>
     </Grid>

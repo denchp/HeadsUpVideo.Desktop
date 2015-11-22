@@ -1,43 +1,43 @@
-﻿using System;
+﻿using HeadsUpVideo.Desktop.Models;
+using HeadsUpVideo.Desktop.ViewModels;
+using System;
 using System.Collections.Generic;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
-using HeadsUpVideo.Desktop.ViewModels;
-using HeadsUpVideo.Desktop.CustomControls;
-using System.Linq;
 using Windows.UI.Xaml.Navigation;
-using HeadsUpVideo.Desktop.Models;
-using System.Threading.Tasks;
-using System.Threading;
+
 
 namespace HeadsUpVideo.Desktop.Pages
 {
-    public sealed partial class VideoPage : Page
+    public sealed partial class BreakdownPage : Page
     {
-        private VideoPageViewModel viewModel;
+        private BreakdownPageViewModel viewModel;
         private Thumb sliderThumb;
         private TextBlock sliderButton;
         private DispatcherTimer updateTimer;
 
-        public VideoPage()
+        public BreakdownPage()
         {
+            
+            updateTimer = new DispatcherTimer();
+            updateTimer.Interval = new TimeSpan(0, 0, 0, 0, 250);
+            updateTimer.Tick += SetCurrentPositionText;
+            viewModel = new BreakdownPageViewModel();
+
             this.InitializeComponent();
             Initialize();
-            updateTimer = new DispatcherTimer();
-            updateTimer.Interval = new TimeSpan(0,0,0,0,250);
-            updateTimer.Tick += SetCurrentPositionText;
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            var file = e.Parameter as FileModel;
+            var file = e.Parameter as BreakdownModel;
 
             VideoPlayer.MediaOpened += VideoPlayer_MediaOpened;
-            if (file != null && file.Stream != null)
-                VideoPlayer.SetSource(file.Stream, file.ContentType);
+            if (file != null && file.AssociatedVideo.Stream != null)
+                VideoPlayer.SetSource(file.AssociatedVideo.Stream, file.AssociatedVideo.ContentType);
 
             base.OnNavigatedTo(e);
         }
@@ -49,13 +49,12 @@ namespace HeadsUpVideo.Desktop.Pages
 
         private void Initialize()
         {
-            this.Loaded += VideoPage_Loaded;
-
-            viewModel = new VideoPageViewModel();
-
+            this.Loaded += BreakdownPage_Loaded;
+            
             viewModel.Initialize(inkCanvas);
             viewModel.TogglePlayPauseEvent += TogglePlayPause;
             Scrubber.ValueChanged += Scrubber_ValueChanged;
+            
 
             this.DataContext = viewModel;
         }
@@ -87,7 +86,7 @@ namespace HeadsUpVideo.Desktop.Pages
             }
         }
 
-        private void VideoPage_Loaded(object sender, RoutedEventArgs e)
+        private void BreakdownPage_Loaded(object sender, RoutedEventArgs e)
         {
             sliderThumb = MyFindSliderChildOfType<Thumb>(Scrubber);
             sliderThumb.Tapped += Thumb_Tapped;

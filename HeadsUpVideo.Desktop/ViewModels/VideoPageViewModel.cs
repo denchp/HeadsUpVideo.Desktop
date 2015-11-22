@@ -11,7 +11,7 @@ using System.IO;
 
 namespace HeadsUpVideo.Desktop.ViewModels
 {
-    class VideoPageViewModel
+    class VideoPageViewModel : NotifyPropertyChangedBase
     {
         public event EventHandler TogglePlayPauseEvent;
 

@@ -108,7 +108,7 @@ namespace HeadsUpVideo.Desktop
                 await dialog.ShowAsync();
             }
         }
-       
+
         private static void LoadRecentFileList()
         {
             var folder = ApplicationData.Current.LocalFolder;
@@ -141,7 +141,7 @@ namespace HeadsUpVideo.Desktop
         private static async void SaveRecentFileList()
         {
             var folder = ApplicationData.Current.LocalFolder;
-          
+
             try
             {
                 var serializer = new XmlSerializer(typeof(List<FileModel>));
@@ -167,6 +167,7 @@ namespace HeadsUpVideo.Desktop
             openPicker.FileTypeFilter.Add(".wmv");
             openPicker.FileTypeFilter.Add(".mp4");
             openPicker.FileTypeFilter.Add(".avi");
+            openPicker.FileTypeFilter.Add(".mts");
 
             var openFileResponse = await openPicker.PickSingleFileAsync();
 
@@ -233,7 +234,6 @@ namespace HeadsUpVideo.Desktop
             }
         }
 
-
         public static void SaveOptions(OptionsModel options)
         {
             var folder = ApplicationData.Current.LocalFolder;
@@ -251,6 +251,57 @@ namespace HeadsUpVideo.Desktop
             {
                 var dialog = new MessageDialog("Error saving options.  If this problem continues please contact support.\r\n\r\n" + ex.Message);
                 dialog.ShowAsync();
+            }
+        }
+
+        public static async Task<BreakdownModel> OpenBreakdown(string path = null)
+        {
+            StorageFile file = null;
+
+            if (path == null)
+            {
+                FileOpenPicker openPicker = new FileOpenPicker();
+
+                openPicker.ViewMode = PickerViewMode.Thumbnail;
+                openPicker.SuggestedStartLocation = PickerLocationId.Downloads;
+                openPicker.FileTypeFilter.Add(".brk");
+                openPicker.FileTypeFilter.Add(".xml");
+
+
+                file = await openPicker.PickSingleFileAsync();
+            }
+            else
+            {
+                file = await StorageFile.GetFileFromPathAsync(path);
+
+            }
+
+            if (file == null)
+                return null;
+
+            var result = await StorageIO.OpenBreakdown(file);
+
+            return result;
+        }
+
+        public static async Task<BreakdownModel> OpenBreakdown(StorageFile file)
+        {
+            try
+            {
+                BreakdownModel breakdown;
+                var serializer = new XmlSerializer(typeof(BreakdownModel));
+
+                var openResponse = await file.OpenAsync(Windows.Storage.FileAccessMode.Read);
+                
+                breakdown = serializer.Deserialize(openResponse.AsStream()) as BreakdownModel;
+
+                return breakdown;
+            }
+            catch (Exception ex)
+            {
+                var dialog = new MessageDialog("There was an error opening the breakdown.\r\n\r\n" + ex.Message);
+                dialog.ShowAsync();
+                return null;
             }
         }
     }

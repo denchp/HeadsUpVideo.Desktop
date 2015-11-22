@@ -17,6 +17,8 @@ namespace HeadsUpVideo.Desktop.ViewModels
         public Command<String> OpenDiagramCmd { get; set; }
         public Command LiveReviewCmd { get; set; }
         public Command InstantReplayCmd { get; set; }
+        public Command MediaCmd { get; set; }
+        public Command BreakdownCmd { get; set; }
 
         private bool _topBarIsOpen = true;
         public bool TopBarIsOpen { get { return _topBarIsOpen; } set { _topBarIsOpen = value; TriggerPropertyChange("TopBarIsOpen"); } }
@@ -29,6 +31,8 @@ namespace HeadsUpVideo.Desktop.ViewModels
             OpenDiagramCmd = new Command<string>() { CanExecuteFunc = obj => true, ExecuteFunc = OpenDiagram };
             LiveReviewCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = OpenCamera };
             InstantReplayCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = NavigationModel.InstantReplay };
+            MediaCmd = NavigationModel.Media;
+            BreakdownCmd = NavigationModel.BreakdownCmd;
         }
 
         private void OpenDiagram(string obj)

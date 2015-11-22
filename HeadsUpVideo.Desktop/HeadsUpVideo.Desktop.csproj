@@ -103,12 +103,16 @@
     <Compile Include="Models\BreakdownModel.cs" />
     <Compile Include="Models\DVRRandomAccessStream.cs" />
     <Compile Include="Models\OptionsModel.cs" />
+    <Compile Include="Pages\BreakdownPage.xaml.cs">
+      <DependentUpon>BreakdownPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\DiagramPage.Xaml.cs">
       <DependentUpon>DiagramPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\InstantReplayPage.xaml.cs">
       <DependentUpon>InstantReplayPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ViewModels\BreakdownPageViewModel.cs" />
     <Compile Include="ViewModels\InstantReplayPageViewModel.cs" />
     <Compile Include="ViewModels\DiagramPageViewModel.cs" />
     <Compile Include="ViewModels\MasterPageViewModel.cs" />
@@ -169,6 +173,10 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Page Include="CustomControls\CustomInkCanvas.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\BreakdownPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
