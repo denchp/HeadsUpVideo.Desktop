@@ -1,0 +1,24 @@
+﻿<UserControl
+    x:Class="HeadsUpVideo.Desktop.CustomControls.BreakdownTimeline"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:HeadsUpVideo.Desktop.CustomControls"
+    xmlns:converter="using:HeadsUpVideo.Desktop.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    xmlns:cc="using:HeadsUpVideo.Desktop.CustomControls">
+    <UserControl.Resources>
+        <converter:DistinctCategoryConverter x:Key="distinctConverter"/>
+    </UserControl.Resources>
+    <StackPanel Orientation="Horizontal" Background="#AA000000">
+        <AppBarButton Icon="OpenFile" Command="{Binding OpenBreakdownCmd}" ToolTipService.ToolTip="Open Breakdown"/>
+        <AppBarButton Icon="SaveLocal" Command="{Binding SaveBreakDownCmd}" ToolTipService.ToolTip="Save Breakdown"/>
+        <AppBarButton Icon="Video" Command="{Binding OpenVideoCmd}" ToolTipService.ToolTip="Change/Open Video For Current Breakdown"/>
+        <ComboBox x:Name="CategoryList" Width ="Auto" SelectionChanged="CategoryList_SelectionChanged" ItemsSource="{Binding Breakdown.Instances, Converter={StaticResource distinctConverter}}" Margin="0"/>
+        <Button Content="&#x23F5;" Background="#AAAAAAAA" Command="{Binding PlaySelectedClips}" ToolTipService.ToolTip="Play All"/>
+        <Button Content="&#xE100;" Background="#AAAAAAAA" Command="{Binding PreviousClip}" ToolTipService.ToolTip="Prev. Clip"/>
+        <Button Content="&#xE101;" Background="#AAAAAAAA" Command="{Binding NextClip}" ToolTipService.ToolTip="Next Clip"/>
+        <ToggleButton x:Name="LoopCurrentClip" Content="&#x238c;" ToolTipService.ToolTip="Loop Current Clip"/>
+    </StackPanel>
+</UserControl>
