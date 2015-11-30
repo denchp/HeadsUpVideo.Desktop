@@ -18,15 +18,15 @@ namespace HeadsUpVideo.Desktop.Pages
         private Thumb sliderThumb;
         private TextBlock sliderButton;
         private DispatcherTimer updateTimer;
+        private CustomControls.BreakdownTimeline.ClipEventArgs CurrentClip;
 
         public BreakdownPage()
         {
-            
             updateTimer = new DispatcherTimer();
             updateTimer.Interval = new TimeSpan(0, 0, 0, 0, 250);
             updateTimer.Tick += SetCurrentPositionText;
             viewModel = new BreakdownPageViewModel();
-
+            this.DataContext = viewModel;
             this.InitializeComponent();
             Initialize();
         }
@@ -34,6 +34,8 @@ namespace HeadsUpVideo.Desktop.Pages
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             var file = e.Parameter as BreakdownModel;
+
+            breakdownTimeline.Initialize(file);
 
             VideoPlayer.MediaOpened += VideoPlayer_MediaOpened;
             if (file != null && file.AssociatedVideo.Stream != null)
@@ -54,14 +56,17 @@ namespace HeadsUpVideo.Desktop.Pages
             viewModel.Initialize(inkCanvas);
             viewModel.TogglePlayPauseEvent += TogglePlayPause;
             Scrubber.ValueChanged += Scrubber_ValueChanged;
-            
-
-            this.DataContext = viewModel;
         }
 
         private void SetCurrentPositionText(object sender, object e)
         {
             CurrentPosition.Text = VideoPlayer.Position.ToString(@"hh\:mm\:ss");
+
+            if (CurrentClip != null && VideoPlayer.Position.TotalSeconds > CurrentClip.EndTime)
+            {
+                VideoPlayer.Stop();
+                BreakdownTimeline_PlayClip(this, breakdownTimeline.GetNextClip());
+            }
 
             if (VideoPlayer.CurrentState != MediaElementState.Playing)
                 updateTimer.Stop();
@@ -93,6 +98,20 @@ namespace HeadsUpVideo.Desktop.Pages
             sliderThumb.DragCompleted += Thumb_DragCompleted;
 
             sliderButton = MyFindSliderChildOfType<TextBlock>(sliderThumb);
+            breakdownTimeline.PlayClip += BreakdownTimeline_PlayClip;
+        }
+
+        private void BreakdownTimeline_PlayClip(object sender, CustomControls.BreakdownTimeline.ClipEventArgs e)
+        {
+            CurrentClip = e;
+            VideoPlayer.Position = new TimeSpan(0, 0, 0, (int)e.StartTime - 1);
+
+            Scrubber.Value = 50;
+            sliderButton.Text = "\u23F8";
+            VideoPlayer.Play();
+            updateTimer.Start();
+
+           
         }
 
         private void Thumb_Tapped(object sender, TappedRoutedEventArgs e)
@@ -104,7 +123,6 @@ namespace HeadsUpVideo.Desktop.Pages
         {
             Scrubber.Value = 50;
             viewModel.LastVideoPosition = VideoPlayer.Position;
-
         }
 
         public static T MyFindSliderChildOfType<T>(DependencyObject root) where T : class

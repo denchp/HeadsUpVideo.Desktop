@@ -18,40 +18,7 @@
         </StackPanel>
         <StackPanel Orientation="Vertical" VerticalAlignment="Bottom" HorizontalAlignment="Stretch">
             <Slider x:Name="Scrubber" HorizontalAlignment="Stretch" Value="50" Style="{StaticResource CircleSlider}" Margin="0,0,0,25"/>
-            <StackPanel Orientation="Horizontal" Background="#AA000000" >
-                <StackPanel Orientation="Vertical">
-                    <AppBarButton Icon="OpenFile" Command="{Binding OpenBreakdownCmd}" ToolTipService.ToolTip="Open Breakdown"/>
-                    <AppBarButton Icon="SaveLocal" Command="{Binding SaveBreakDownCmd}" ToolTipService.ToolTip="Save Breakdown"/>
-                    <AppBarButton Icon="Video" Command="{Binding OpenVideoCmd}" ToolTipService.ToolTip="Change/Open Video For Current Breakdown"/>
-                </StackPanel>
-                <ListView DataContext="{Binding Breakdown.Categories}" Margin="0" MaxHeight="500">
-                    <ListView.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <Grid></Grid>
-                        </ItemsPanelTemplate>
-                    </ListView.ItemsPanel>
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" Grid.Column="0">
-                                <Button Content="&#x23F5;"/>
-                                <TextBlock Text="{Binding Key}" Margin="10,0,0,0" VerticalAlignment="Center"/>
-                                <ListView DataContext="{Binding Value}" Margin="0" MaxHeight="500">
-                                    <ListView.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <Grid></Grid>
-                                        </ItemsPanelTemplate>
-                                    </ListView.ItemsPanel>
-                                    <ListView.ItemTemplate>
-                                        <DataTemplate>
-                                            <Button Grid.Column="{Binding Id}" MinWidth="{Binding Width}" MaxWidth="{Binding Width}" Width="{Binding Width}" Background="Green" VerticalAlignment="Stretch" Margin="0"/>
-                                        </DataTemplate>
-                                    </ListView.ItemTemplate>
-                                </ListView>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </StackPanel>
+            <cc:BreakdownTimeline x:Name="breakdownTimeline"/>
         </StackPanel>
     </Grid>
 </Page>

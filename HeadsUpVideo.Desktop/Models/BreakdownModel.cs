@@ -12,6 +12,10 @@ namespace HeadsUpVideo.Desktop.Models
     [XmlRoot(ElementName = "file")]
     public class BreakdownModel : NotifyPropertyChangedBase
     {
+        public BreakdownModel() {
+          
+        }
+
         public FileModel AssociatedVideo { get; set; }
 
         [XmlArray(ElementName = "ALL_INSTANCES")]
@@ -30,14 +34,10 @@ namespace HeadsUpVideo.Desktop.Models
             public string Category { get; set; }
             [XmlElement(ElementName = "label")]
             public Label Label { get; set; }
-
-            [XmlIgnore]
-            public int Width { get { return (int)(this.StopTime - this.StartTime) * 10; } }
+            [XmlElement(ElementName = "flagged")]
+            public bool? Flagged { get; set; }
         }
-
-        [XmlIgnore]
-        public Dictionary<string, List<Instance>> Categories { get { return Instances.GroupBy(x => x.Category).ToDictionary(g => g.Key, g => g.ToList()); } }
-
+        
         [XmlType(TypeName = "label")]
         public struct Label
         {

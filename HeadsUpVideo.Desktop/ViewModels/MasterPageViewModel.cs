@@ -32,7 +32,13 @@ namespace HeadsUpVideo.Desktop.ViewModels
             LiveReviewCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = OpenCamera };
             InstantReplayCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = NavigationModel.InstantReplay };
             MediaCmd = NavigationModel.Media;
-            BreakdownCmd = NavigationModel.BreakdownCmd;
+            BreakdownCmd = new Command() { CanExecuteFunc = obj => true, ExecuteFunc = OpenBreakdown };
+        }
+
+        private void OpenBreakdown()
+        {
+            TopBarIsOpen = false;
+            NavigationModel.BreakdownCmd.ExecuteFunc();
         }
 
         private void OpenDiagram(string obj)

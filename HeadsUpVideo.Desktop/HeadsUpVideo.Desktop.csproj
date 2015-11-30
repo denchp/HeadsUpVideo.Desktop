@@ -95,6 +95,11 @@
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
     <Compile Include="Base\Command.cs" />
+    <Compile Include="Converters\DistinctCategoryConverter.cs" />
+    <Compile Include="Converters\DistinctConverter.cs" />
+    <Compile Include="CustomControls\BreakdownTimeline.xaml.cs">
+      <DependentUpon>BreakdownTimeline.xaml</DependentUpon>
+    </Compile>
     <Compile Include="CustomControls\CustomInkCanvas.xaml.cs">
       <DependentUpon>CustomInkCanvas.xaml</DependentUpon>
     </Compile>
@@ -172,6 +177,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="CustomControls\BreakdownTimeline.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="CustomControls\CustomInkCanvas.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
