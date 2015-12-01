@@ -158,12 +158,14 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\fcs_logo.png" />
+    <Content Include="Assets\FullIce.png" />
     <Content Include="Assets\FullSheetAngle.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\FullSheetLong.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Assets\HalfIce.png" />
     <Content Include="Assets\logo_cropped.png" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
